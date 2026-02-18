@@ -1,27 +1,24 @@
+use crate::constants::keywords::{NODE_STR, RELATIONSHIP_STR};
 use std::collections::HashMap;
-use crate::constants::keywords::{RELATIONSHIP_STR, NODE_STR};
 
 use crate::types::*;
 
-
 #[derive(Debug, PartialEq)]
 pub enum QueryObject {
-    ADD (AddQO),
-    REMOVE (RemoveQO),
-    GET (GetQO),
-    FIND (FindQO),
-    UPDATE (UpdateQO),
+    ADD(AddQO),
+    REMOVE(RemoveQO),
+    GET(GetQO),
+    FIND(FindQO),
+    UPDATE(UpdateQO),
 }
-
-
 
 #[derive(Debug, PartialEq)]
 pub enum AddQO {
-    Node (AddNodeQO),
-    Relationship (AddRelationshipQO),
-    Index (),
-    Properties (),
-    Constraint (),
+    Node(AddNodeQO),
+    Relationship(AddRelationshipQO),
+    Index(),
+    Properties(),
+    Constraint(),
 }
 
 #[derive(Debug, PartialEq)]
@@ -40,20 +37,18 @@ pub struct AddRelationshipQO {
     pub properties: HashMap<String, String>,
 }
 
-
 #[derive(Debug, PartialEq)]
 pub enum RemoveQO {
-    Node (RemoveNodeQO),
-    Relationship (RemoveRelationshipQO),
-    Index (),
-    Constraint (),
+    Node(RemoveNodeQO),
+    Relationship(RemoveRelationshipQO),
+    Index(),
+    Constraint(),
 }
-
 
 #[derive(Debug, PartialEq)]
 pub struct RemoveNodeQO {
     pub id: NodeID,
-    pub mode: RemoveMode
+    pub mode: RemoveMode,
 }
 
 #[derive(Debug, PartialEq)]
@@ -64,33 +59,28 @@ pub enum RemoveMode {
 
 #[derive(Debug, PartialEq)]
 pub struct RemoveRelationshipQO {
-    pub id: RelationshipID
+    pub id: RelationshipID,
 }
 
 #[derive(Debug, PartialEq)]
 pub enum GetQO {
-    Node (NodeID),
-    Relationship (RelationshipID),
+    Node(NodeID),
+    Relationship(RelationshipID),
 }
-
 
 #[derive(Debug, PartialEq)]
 pub enum FindQO {
-    Node (),
-    Nodes (),
-    Relationship (),
-    Relationships (),
+    Node(),
+    Nodes(),
+    Relationship(),
+    Relationships(),
 }
-
-
 
 #[derive(Debug, PartialEq)]
 pub enum UpdateQO {
-    Node (),
-    Relationship (),
+    Node(),
+    Relationship(),
 }
-
-
 
 #[derive(Debug)]
 pub struct NodeTuple {
@@ -104,8 +94,6 @@ impl NodeTuple {
     }
 }
 
-
-
 #[derive(Clone, Debug)]
 pub enum ObjectKind {
     Node,
@@ -118,14 +106,8 @@ impl ObjectKind {
         (RELATIONSHIP_STR, ObjectKind::Relationship),
     ];
 
-    pub fn from_str (s: &str) -> Option<ObjectKind> {
-        let (_, kind) = Self::STRINGS.iter()
-            .find(|(value, _)| value == &s)?;
+    pub fn from_str(s: &str) -> Option<ObjectKind> {
+        let (_, kind) = Self::STRINGS.iter().find(|(value, _)| value == &s)?;
         Some(kind.clone())
     }
 }
-
-
-
-
-

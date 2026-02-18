@@ -1,26 +1,18 @@
 use crate::parser::{parse_query::parse_query, query::Query};
 
-
+mod constants;
 mod parser;
 mod types;
-mod constants;
-
 
 fn main() {
-    let remove_node_query = Query::from_str(
-        "REMOVE NODE 12345 CASCADE"
-    );
+    let remove_node_query = Query::from_str("REMOVE NODE 12345 CASCADE");
     let add_rel_query = Query::from_str(
-        "ADD RELATIONSHIP r1 TYPE LOVES FROM 893641 TO 324218436 PROPERTIES since = 2012, reason = 'natural' "
+        "ADD RELATIONSHIP r1 TYPE LOVES FROM 893641 TO 324218436 PROPERTIES since = 2012, reason = 'natural' ",
     );
-    let add_node_query = Query::from_str(
-        "ADD NODE n1 TYPE Person PROPERTIES name = 'Malik', age = 20"
-    );
+    let add_node_query =
+        Query::from_str("ADD NODE n1 TYPE Person PROPERTIES name = 'Malik', age = 20");
     match parse_query(remove_node_query) {
         Ok(result) => println!("Query parsed successfully. Query object: {:?}", result),
-        Err(err) => println!("Error parsing query: {:?}", err)
+        Err(err) => println!("Error parsing query: {:?}", err),
     }
 }
-
-
-

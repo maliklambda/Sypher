@@ -1,8 +1,7 @@
-pub mod parse_query;
-pub mod objects;
 pub mod errors;
+pub mod objects;
 pub mod operations;
+pub mod parse_query;
 pub mod query;
 mod tests;
 mod utils;
-

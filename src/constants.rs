@@ -1,4 +1,3 @@
-
 pub mod keywords {
     pub const NODE_STR: &str = "NODE";
     pub const RELATIONSHIP_STR: &str = "RELATIONSHIP";
@@ -30,6 +29,3 @@ pub mod special_chars {
 pub mod limits {
     pub const MAX_IDENTIFIER_LEN: usize = 128;
 }
-
-
-
