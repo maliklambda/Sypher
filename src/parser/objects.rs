@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use crate::constants::keywords::{RELATIONSHIP_STR, NODE_STR};
 
 use crate::types::*;
 
@@ -85,3 +86,29 @@ impl NodeTuple {
         NodeTuple { from, to }
     }
 }
+
+
+
+#[derive(Clone, Debug)]
+pub enum ObjectKind {
+    Node,
+    Relationship,
+}
+
+impl ObjectKind {
+    const STRINGS: &'static [(&'static str, Self)] = &[
+        (NODE_STR, ObjectKind::Node),
+        (RELATIONSHIP_STR, ObjectKind::Relationship),
+    ];
+
+    pub fn from_str (s: &str) -> Option<ObjectKind> {
+        let (_, kind) = Self::STRINGS.iter()
+            .find(|(value, _)| value == &s)?;
+        Some(kind.clone())
+    }
+}
+
+
+
+
+

@@ -4,4 +4,5 @@ pub mod errors;
 pub mod operations;
 pub mod query;
 mod tests;
+mod utils;
 
