@@ -133,7 +133,7 @@ fn parse_add_relationship (query: &mut Query) -> Result<AddRelationshipQO, Parse
     let type_name = get_type_name(query)?;
     println!("typename: {type_name}");
     println!("query after type name: {query}");
-    let (from, to) = get_nodes_for_relationship(query).unwrap();
+    let NodeTuple{from, to} = get_nodes_for_relationship(query).unwrap();
     let properties = parse_properties(query)?;
     Ok(AddRelationshipQO {
         identifier: identifier.to_string(),
@@ -257,7 +257,7 @@ fn get_value(query: &mut Query, key: &str) -> Result<String, ParseKeyValueError>
 }
 
 
-fn get_nodes_for_relationship(query: &mut Query) -> Result<(u32, u32), String> {
+fn get_nodes_for_relationship(query: &mut Query) -> Result<NodeTuple, String> {
     assert_eq!(FROM_STR, query.to_next_space()
         .ok_or("no 'From' found".to_string())?
     );
@@ -273,5 +273,8 @@ fn get_nodes_for_relationship(query: &mut Query) -> Result<(u32, u32), String> {
         .ok_or("No next space after 'To'")?
         .parse()
         .map_err(|err| format!("Parsing of to-node failed: {}", err))?;
-    Ok((to, from))
+    Ok(NodeTuple::new(to, from))
 }
+
+
+

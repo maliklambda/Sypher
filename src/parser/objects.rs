@@ -74,3 +74,14 @@ pub enum UpdateQO {
 
 
 
+#[derive(Debug)]
+pub struct NodeTuple {
+    pub from: u32,
+    pub to: u32,
+}
+
+impl NodeTuple {
+    pub fn new(to: u32, from: u32) -> NodeTuple {
+        NodeTuple { from, to }
+    }
+}
