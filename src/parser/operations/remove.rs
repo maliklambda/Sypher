@@ -30,7 +30,7 @@ fn parse_remove_node(query: &mut Query) -> Result<RemoveNodeQO, ParseQueryError>
             },
         ))?
         .parse()
-        .map_err(|err| ParseQueryError::new(ParseErrorReason::ParseNode(err)))?;
+        .map_err(|err| ParseQueryError::new(ParseErrorReason::ParseID(err)))?;
 
     println!("we got id: {remove_id}");
     println!("{query}");
@@ -47,7 +47,7 @@ fn parse_remove_relationship(query: &mut Query) -> Result<RemoveRelationshipQO, 
     let remove_id = query
         .to_end()
         .parse()
-        .map_err(|err| ParseQueryError::new(ParseErrorReason::ParseNode(err)))?;
+        .map_err(|err| ParseQueryError::new(ParseErrorReason::ParseID(err)))?;
 
     Ok(RemoveRelationshipQO { id: remove_id })
 }

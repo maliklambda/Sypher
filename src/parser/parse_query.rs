@@ -13,6 +13,7 @@ pub fn parse_query(query: Query) -> Result<QueryObject, ParseQueryError> {
     let query_object: QueryObject = match operation {
         Operation::Add => QueryObject::ADD(add::parse_add(&mut query)?),
         Operation::Remove => QueryObject::REMOVE(remove::parse_remove(&mut query)?),
+        Operation::Get => QueryObject::GET(get::parse_get(&mut query)?),
         _ => todo!("Other operations of Operation"),
     };
     Ok(query_object)

@@ -41,7 +41,7 @@ pub enum ParseErrorReason {
     MissingIdentifier,
     IdentifierMissingType,
     MissingTypeName,
-    ParseNode(ParseIntError),
+    ParseID(ParseIntError),
     ParseKeyValuePairs(ParseKeyValueError),
     UnknownRemoveMode,
     TooLongIdentifier { got: usize, max_len: usize },
@@ -75,7 +75,7 @@ impl std::fmt::Display for ParseErrorReason {
                 ParseErrorReason::TooLongIdentifier { got, max_len } => {
                     &format!("Identifier is too long. Max length: {max_len}, got {got}")
                 }
-                ParseErrorReason::ParseNode(err) => &format!("Parsing node failed: {err}"),
+                ParseErrorReason::ParseID(err) => &format!("Parsing node failed: {err}"),
                 ParseErrorReason::Other => "Other",
                 ParseErrorReason::Default => "Default",
             }

@@ -147,7 +147,7 @@ pub fn get_nodes_for_relationship(query: &mut Query) -> Result<NodeTuple, ParseQ
             for_keyword: FROM_STR.to_string(),
         }))?
         .parse()
-        .map_err(|err| ParseQueryError::new(ParseErrorReason::ParseNode(err)))?;
+        .map_err(|err| ParseQueryError::new(ParseErrorReason::ParseID(err)))?;
     println!("current query: {query}");
     assert_eq!(
         TO_STR,
@@ -163,7 +163,7 @@ pub fn get_nodes_for_relationship(query: &mut Query) -> Result<NodeTuple, ParseQ
             for_keyword: TO_STR.to_string(),
         }))?
         .parse()
-        .map_err(|err| ParseQueryError::new(ParseErrorReason::ParseNode(err)))?;
+        .map_err(|err| ParseQueryError::new(ParseErrorReason::ParseID(err)))?;
     Ok(NodeTuple::new(to, from))
 }
 
