@@ -43,12 +43,29 @@ pub struct AddRelationshipQO {
 
 #[derive(Debug, PartialEq)]
 pub enum RemoveQO {
-    Node (),
-    Relationship (),
+    Node (RemoveNodeQO),
+    Relationship (RemoveRelationshipQO),
     Index (),
     Constraint (),
 }
 
+
+#[derive(Debug, PartialEq)]
+pub struct RemoveNodeQO {
+    pub id: NodeID,
+    pub mode: RemoveMode
+}
+
+#[derive(Debug, PartialEq)]
+pub enum RemoveMode {
+    CASCADE,
+    SAFE,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct RemoveRelationshipQO {
+    pub id: RelationshipID
+}
 
 #[derive(Debug, PartialEq)]
 pub enum GetQO {
