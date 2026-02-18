@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::parser::{errors::{ParseKeyValueError, ParseQueryError}, objects::{AddNodeQO, AddQO, AddRelationshipQO, QueryObject}, parse_query::parse_query, query::Query};
+use crate::parser::{errors::{ParseErrorReason, ParseKeyValueError, ParseQueryError}, objects::{AddNodeQO, AddQO, AddRelationshipQO, QueryObject}, parse_query::parse_query, query::Query};
 use crate::parser::errors::ParseErrorReason::ParseKeyValuePairs;
 use crate::parser::errors::ParseKeyValueErrorReason::MissingPropertyStr;
 
@@ -59,6 +59,21 @@ fn test_add_relationship(){
 }
 
 
+#[test]
+fn test_add_relationship_fails(){
+    let invalid_query = Query::from_str("ADD RELATIONSHIP TYPE");
+    assert!(parse_query(invalid_query).is_err());
+
+    let invalid_query = Query::from_str("ADD RELATIONSHIP n1 PersonPROPERTIES name='Edos', age=20");
+    let res = parse_query(invalid_query);
+    println!("hello {:?}", res);
+    match res {
+        Err(ParseQueryError { 
+            reason: r
+        }) => assert_eq!(r, ParseErrorReason::IdentifierMissingType), 
+        _ => panic!("Expected query \"{invalid_query}\" to return an error, but it passed")
+    }
+}
 
 
 

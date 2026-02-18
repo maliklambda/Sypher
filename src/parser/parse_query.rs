@@ -133,7 +133,7 @@ fn parse_add_relationship (query: &mut Query) -> Result<AddRelationshipQO, Parse
     let type_name = get_type_name(query)?;
     println!("typename: {type_name}");
     println!("query after type name: {query}");
-    let NodeTuple{from, to} = get_nodes_for_relationship(query).unwrap();
+    let NodeTuple{from, to} = get_nodes_for_relationship(query)?;
     let properties = parse_properties(query)?;
     Ok(AddRelationshipQO {
         identifier: identifier.to_string(),
@@ -257,22 +257,22 @@ fn get_value(query: &mut Query, key: &str) -> Result<String, ParseKeyValueError>
 }
 
 
-fn get_nodes_for_relationship(query: &mut Query) -> Result<NodeTuple, String> {
+fn get_nodes_for_relationship(query: &mut Query) -> Result<NodeTuple, ParseQueryError> {
     assert_eq!(FROM_STR, query.to_next_space()
-        .ok_or("no 'From' found".to_string())?
+        .ok_or(ParseQueryError::new(ParseErrorReason::MissingKeyword { expected: FROM_STR.to_string() }))?
     );
     let from = query.to_next_space()
-        .ok_or("No next space after 'From'")?
+        .ok_or(ParseQueryError::new(ParseErrorReason::MissingValue { for_keyword: FROM_STR.to_string() }))?
         .parse()
-        .map_err(|err| format!("Parsing of from-node failed: {}", err))?;
+        .map_err(|err| ParseQueryError::new(ParseErrorReason::ParseNode(err)))?;
     println!("current query: {query}");
     assert_eq!(TO_STR, query.to_next_space()
-        .ok_or("no 'To' found".to_string())?
+        .ok_or(ParseQueryError::new(ParseErrorReason::MissingKeyword { expected: TO_STR.to_string() }))?
     );
     let to = query.to_next_space()
-        .ok_or("No next space after 'To'")?
+        .ok_or(ParseQueryError::new(ParseErrorReason::MissingValue { for_keyword: TO_STR.to_string() }))?
         .parse()
-        .map_err(|err| format!("Parsing of to-node failed: {}", err))?;
+        .map_err(|err| ParseQueryError::new(ParseErrorReason::ParseNode(err)))?;
     Ok(NodeTuple::new(to, from))
 }
 

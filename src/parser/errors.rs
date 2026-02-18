@@ -1,3 +1,5 @@
+use std::num::ParseIntError;
+
 
 #[derive(Debug)]
 pub struct ParseQueryError {
@@ -41,13 +43,16 @@ impl std::fmt::Display for ParseQueryError {
 pub type ErrorSection = (usize, usize);
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum ParseErrorReason {
     InvalidKeyword (String),
+    MissingKeyword{expected: String},
+    MissingValue {for_keyword: String},
     InvalidObjectKind (String),
     MissingIdentifier,
     IdentifierMissingType,
     MissingTypeName,
+    ParseNode (ParseIntError),
     ParseKeyValuePairs(ParseKeyValueError),
     TooLongIdentifier { got: usize, max_len: usize},
     Other,
@@ -61,10 +66,13 @@ impl std::fmt::Display for ParseErrorReason {
                 ParseErrorReason::InvalidKeyword (invalid_kw) => &format!("Invalid key word: {invalid_kw}"),
                 ParseErrorReason::InvalidObjectKind(invalid_obj_kind) => &format!("Invalid object kind: {invalid_obj_kind}"),
                 ParseErrorReason::MissingIdentifier => "Missing identifier",
+                ParseErrorReason::MissingKeyword { expected }=> &format!("Missing required keyword '{expected}'"),
+                ParseErrorReason::MissingValue { for_keyword }=> &format!("Missing value for keyword '{for_keyword}'"),
                 ParseErrorReason::IdentifierMissingType => "Identifier missing type",
                 ParseErrorReason::MissingTypeName => "Identifier missing type name",
                 ParseErrorReason::ParseKeyValuePairs(kv_err) => &format!("Parse key value pairs failed: {kv_err}"),
                 ParseErrorReason::TooLongIdentifier{got, max_len} => &format!("Identifier is too long. Max length: {max_len}, got {got}"),
+                ParseErrorReason::ParseNode(err) => &format!("Parsing node failed: {err}"),
                 ParseErrorReason::Other => "Other",
                 ParseErrorReason::Default => "Default",
             }
