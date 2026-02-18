@@ -16,6 +16,7 @@ pub mod command_kws {
 
 pub mod special_chars {
     pub const SPACE: char = ' ';
+    pub const SPACE_LEN: usize = 1;
     pub const SEMICOLON: char = ';';
     pub const COMMA: char = ',';
     pub const DOT: char = '.';

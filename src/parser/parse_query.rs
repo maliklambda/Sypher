@@ -1,5 +1,4 @@
 use std::collections::HashMap;
-use std::hash::Hash;
 
 use crate::constants::limits::MAX_IDENTIFIER_LEN;
 use crate::parser::objects::*;
@@ -7,51 +6,53 @@ use crate::parser::errors::*;
 use crate::constants::special_chars::*;
 use crate::constants::keywords::*;
 use crate::parser::operations::keywords::Operation;
+use crate::parser::query::Query;
 
 
 
 
-pub fn parse_query (query: String) -> Result<QueryObject, ParseQueryError> {
+pub fn parse_query (query: Query) -> Result<QueryObject, ParseQueryError> {
     println!("Parsing: {query}");
-    let query = prepare_query(query);
-    let (operation, query_rest) = get_operation(&query)?;
+    let mut query = prepare_query(query);
+    let operation = get_operation(&mut query)?;
     let query_object: QueryObject = match operation {
-        Operation::Add => QueryObject::ADD(parse_add(query_rest)?),
-        Operation::Remove => QueryObject::REMOVE(parse_remove(query_rest)?),
+        Operation::Add => QueryObject::ADD(parse_add(&mut query)?),
+        Operation::Remove => QueryObject::REMOVE(parse_remove(&mut query)?),
         _ => todo!("Other operations of Operation"),
     };
     Ok(query_object)
 }
 
 
-fn prepare_query(query: String) -> String {
-    let query = query.strip_suffix(SEMICOLON).unwrap_or(&query);
-
-    query.to_owned()
+fn prepare_query(query: Query) -> Query {
+    let new_query_str = query.current.strip_suffix(SEMICOLON).unwrap_or(query.current);
+    Query::from_str(new_query_str)
 }
 
 
 
-fn get_operation (query: &str) -> Result<(Operation, &str), ParseQueryError> {
-    let (keyword_str, query_rest) = query.split_once(SPACE)
-        .ok_or(ParseQueryError::new(ParseErrorReason::InvalidKeyword(query.to_string()), 0, query.len()))?;
-    let operation = Operation::from_str(keyword_str)
+fn get_operation (query: &mut Query) -> Result<Operation, ParseQueryError> {
+    let keyword = query.to_next_space()
+        .ok_or(ParseQueryError::new(ParseErrorReason::InvalidKeyword(
+            // query.current.to_string()
+            "keyword".to_string()
+        )))?;
+    let operation = Operation::from_str(keyword)
         .ok_or(ParseQueryError {
-            reason: ParseErrorReason::InvalidKeyword(keyword_str.to_string()),
-            error_section: (0, keyword_str.len()),
+            reason: ParseErrorReason::InvalidKeyword(keyword.to_string()),
         })?;
-    Ok((operation, query_rest))
+    Ok(operation)
 }
 
 
 
-pub fn parse_add (query_part: &str) -> Result<AddQO, ParseQueryError> {
-    println!("Parsing add: {query_part}");
-    let (object_kind, query_rest) = get_object_kind(query_part)?;
+pub fn parse_add (query: &mut Query) -> Result<AddQO, ParseQueryError> {
+    println!("Parsing add: {query}");
+    let object_kind = get_object_kind(query)?;
     let add_query_object = {
         match object_kind {
-            ObjectKind::Node => AddQO::Node(parse_add_node(query_rest)?),
-            ObjectKind::Relationship => AddQO::Relationship(parse_add_relationship(query_rest)?),
+            ObjectKind::Node => AddQO::Node(parse_add_node(query)?),
+            ObjectKind::Relationship => AddQO::Relationship(parse_add_relationship(query)?),
         }
     };
     println!("object kind is {:?}", object_kind);
@@ -60,26 +61,28 @@ pub fn parse_add (query_part: &str) -> Result<AddQO, ParseQueryError> {
 
 
 
-pub fn parse_remove (query_part: &str) -> Result<RemoveQO, ParseQueryError> {
+pub fn parse_remove (query: &mut Query) -> Result<RemoveQO, ParseQueryError> {
     todo!("parse remove");
 }
 
 
 
-fn get_object_kind (query: &str) -> Result<(ObjectKind, &str), ParseQueryError> {
-    let (object_kind_str, query_rest) = query.split_once(SPACE)
+fn get_object_kind (query: &mut Query) -> Result<ObjectKind, ParseQueryError> {
+    let (object_kind_str, query_rest) = query.current.split_once(SPACE)
         .ok_or(
             ParseQueryError::new(
-                ParseErrorReason::InvalidObjectKind(query.to_string()), 0, query.len()
+                ParseErrorReason::InvalidObjectKind(query.to_string())
             )
         )?;
     let object_kind = ObjectKind::from_str(object_kind_str)
         .ok_or(
             ParseQueryError::new(
-                ParseErrorReason::InvalidObjectKind(query.to_string()), 0, object_kind_str.len()
+                ParseErrorReason::InvalidObjectKind(query.to_string())
             )
         )?;
-    Ok((object_kind, query_rest))
+    query.current = query_rest;
+    query.offset += object_kind_str.len() + SPACE_LEN;
+    Ok(object_kind)
 }
 
 
@@ -107,13 +110,13 @@ impl ObjectKind {
 
 
 
-fn parse_add_node (query: &str) -> Result<AddNodeQO, ParseQueryError> {
+fn parse_add_node (query: &mut Query) -> Result<AddNodeQO, ParseQueryError> {
     println!("parsing add node: {query}");
-    let (identifier, query) = get_identifier(query)?;
+    let identifier = get_identifier(query)?;
     println!("identifier: {identifier}");
-    let (type_name, query) = get_type_name(query)?;
+    let type_name = get_type_name(query)?;
     println!("typename: {type_name}");
-    println!("query after type name: {query}");
+    // println!("query after type name: {query}");
     let properties = parse_properties(query)?;
     Ok(AddNodeQO { 
         identifier: identifier.to_string(),
@@ -123,98 +126,138 @@ fn parse_add_node (query: &str) -> Result<AddNodeQO, ParseQueryError> {
 }
 
 
-fn parse_add_relationship (query: &str) -> Result<AddRelationshipQO, ParseQueryError> {
+fn parse_add_relationship (query: &mut Query) -> Result<AddRelationshipQO, ParseQueryError> {
     println!("parsing add relationship: {query}");
-    todo!("finish parse add relationship");
+    let identifier = get_identifier(query)?;
+    println!("identifier: {identifier}");
+    let type_name = get_type_name(query)?;
+    println!("typename: {type_name}");
+    println!("query after type name: {query}");
+    let (from, to) = get_nodes_for_relationship(query).unwrap();
+    let properties = parse_properties(query)?;
+    Ok(AddRelationshipQO {
+        identifier: identifier.to_string(),
+        type_name: type_name.to_string(),
+        from,
+        to, 
+        properties,
+    })
 }
 
 
 
-fn get_identifier(query: &str) -> Result<(&str, &str), ParseQueryError> {
-    let (identifier, query_rest) = query.split_once(SPACE)
-        .ok_or(ParseQueryError::new(ParseErrorReason::IdentifierMissingType, 0, query.len()))?;
+fn get_identifier (query: &mut Query) -> Result<String, ParseQueryError> {
+    let identifier = query.to_next_space()
+        .ok_or(ParseQueryError::new(ParseErrorReason::MissingIdentifier))?;
     if identifier.len() > MAX_IDENTIFIER_LEN {
-        return Err(ParseQueryError::new(ParseErrorReason::TooLongIdentifier(identifier.len(), MAX_IDENTIFIER_LEN), 0, 1));
+        return Err(ParseQueryError::new(ParseErrorReason::TooLongIdentifier{got: identifier.len(), max_len: MAX_IDENTIFIER_LEN}));
     }
-    println!("Query after identifier: {query_rest}");
-    Ok((identifier, query_rest))
+    Ok(identifier.to_string())
 }
 
 
-fn get_type_name(query: &str) -> Result<(&str, &str), ParseQueryError> {
+fn get_type_name (query: &mut Query) -> Result<String, ParseQueryError> {
     println!("query: {query}");
-    let (expected_type, query) = query.split_once(SPACE)
-        .ok_or(ParseQueryError::new(ParseErrorReason::IdentifierMissingType, 0, query.len()))?;
+    let (expected_type, query_rest) = query.current.split_once(SPACE)
+        .ok_or(ParseQueryError::new(ParseErrorReason::IdentifierMissingType))?;
     if expected_type != TYPE_STR {
-        return Err(ParseQueryError::new(ParseErrorReason::IdentifierMissingType, 0, query.len()))
+        return Err(ParseQueryError::new(ParseErrorReason::IdentifierMissingType))
     }
-    let (type_name, query_rest) = query.split_once(SPACE)
-        .ok_or(ParseQueryError::new(ParseErrorReason::IdentifierMissingType, 0, query.len()))?;
-    println!("end query: {query_rest}");
-    Ok((type_name, query_rest))
+    let (type_name, query_rest) = query_rest.split_once(SPACE)
+        .ok_or(ParseQueryError::new(ParseErrorReason::IdentifierMissingType))?;
+    query.current = query_rest;
+    query.offset += TYPE_STR.len() + SPACE_LEN + type_name.len() + SPACE_LEN;
+    Ok(type_name.to_string())
 }
 
-fn parse_properties (query: &str) -> Result<HashMap<String, String>, ParseQueryError> {
-    if !query.trim_start().starts_with(PROPERTIES_STR) {
-        return Err(ParseQueryError::new(ParseErrorReason::ParseKeyValuePairs, 0, 1));
+fn parse_properties (query: &mut Query) -> Result<HashMap<String, String>, ParseQueryError> {
+    let q = query.current.to_string();
+    println!("1query = {}", q);
+    query.trim_left();
+    if query.to_next_space()
+        .ok_or(ParseKeyValueError::new(ParseKeyValueErrorReason::MissingPropertyStr))? 
+    != PROPERTIES_STR {
+        return Err(ParseKeyValueError::new(ParseKeyValueErrorReason::MissingPropertyStr).into());
     }
-    let mut query = query.trim_start().strip_prefix(PROPERTIES_STR).unwrap();
-
-    if !query.starts_with(SPACE) {
-        return Err(ParseQueryError::new(ParseErrorReason::ParseKeyValuePairs, 0, 1));
-    }
-
     let mut properties: HashMap<String, String> = HashMap::new();
-    println!("Parsing properties for <{query}>");
-    while !query.trim_start().starts_with(SEMICOLON) && !query.trim().is_empty() {
-        println!("query == <{query}>");
-        query = parse_kv_pair(query, &mut properties)
-            .map_err(|err| ParseQueryError::new(
-                ParseErrorReason::ParseKeyValuePairs, 0, 1
-            ))?;
+    println!("Parsing properties for {query}");
+    while query.current.trim().len() > 1 {
+        println!("Start parsing with this {query}");
+        parse_kv_pair(query, &mut properties)?;
     }
     Ok(properties)
 }
 
 
 
-// Parse key value pairs
-// Example: name = 'Malik', age = 20, occupation = 'SWE', ...
-// Expects the current query to start WITHOUT A COMMA!
-// Whitespace is okay.
-fn parse_kv_pair <'a>(query: &'a str, properties: &mut HashMap<String, String>) -> Result<&'a str, ParseKeyValueError> {
-    let (key, query) = query.split_once(ASSIGNMENT)
-        .ok_or(ParseKeyValueError::new())?;
-    let key = key.trim();
-    let query = query.trim_start();
-    let (value_str, mut query) = {
-        if query.starts_with(DOUBLE_QUOTE) {
-            println!("Got String value double quotes");
-            let end = *query.find(DOUBLE_QUOTE).iter().nth(2).ok_or(ParseKeyValueError::new())?;
-            query.split_at(end)
-        } else if query.starts_with(SINGLE_QUOTE) {
-            println!("Got String value single quotes");
-            let end = query[1..].find(SINGLE_QUOTE).ok_or(ParseKeyValueError::new())? +2;
-            println!("end == {end}");
-            query.split_at(end)
-        } else {
-            println!("query: {query}");
-            let end = query.find(COMMA).unwrap_or(query.len());
-            query.split_at(end)
-        }
-    };
+/* 
+* Parse key value pairs
+* Example: name = 'Malik', age = 20, occupation = 'SWE', ...
+* Expects the current query to start WITHOUT A COMMA!
+* Whitespace is okay.
+*/
+fn parse_kv_pair (query: &mut Query, properties: &mut HashMap<String, String>) -> Result<(), ParseKeyValueError> {
+    let key = get_key(query)?;
+    query.trim_left();
+    let value_str = get_value(query, &key)?;
 
-    properties.insert(key.to_string(), value_str.to_string());
-    if query.trim_start().starts_with(COMMA) {
-        query = &query[1..];
-    }
+    println!("key = {key}, value_str = '{value_str}'");
+    properties.insert(key, value_str.to_string());
+    query.trim_left_char(COMMA);
 
-    println!("key = {key}, value_str = <{value_str}>");
     println!("Remaining query: {:?}", query);
-    // todo!("Finish parsing single kv-pair");
-    Ok(query)
+    Ok(())
 }
 
 
+fn get_key (query: &mut Query) -> Result<String, ParseKeyValueError> {
+    let key = query.to_next_char(ASSIGNMENT)
+        .ok_or(ParseKeyValueError::new(ParseKeyValueErrorReason::MissingAssignment))?;
+    let key = key.trim();
+    Ok(key.to_string())
+}
 
 
+fn get_value(query: &mut Query, key: &str) -> Result<String, ParseKeyValueError> {
+    assert!(!query.current.is_empty());
+    match query.current.chars().next().unwrap(){
+        DOUBLE_QUOTE => {
+            println!("Got String value double quotes");
+            query.trim_left_char(DOUBLE_QUOTE).unwrap(); // trim first DOUBLE_QUOTE
+            Ok(
+                query.to_next_char(DOUBLE_QUOTE)
+                    .ok_or(ParseKeyValueError::new(ParseKeyValueErrorReason::UnclosedDoubleQuote))?
+                    .to_string()
+            )
+        },
+        SINGLE_QUOTE => {
+            println!("Got String value single quotes");
+            query.trim_left_char(SINGLE_QUOTE).unwrap(); // trim first SINGLE_QUOTE
+            Ok(
+                query.to_next_char(SINGLE_QUOTE)
+                    .ok_or(ParseKeyValueError::new(ParseKeyValueErrorReason::UnclosedSingleQuote))?
+                    .to_string()
+            )
+        },
+        _ => {
+            println!("Value other than string");
+            println!("query: {query}");
+            if let Some(value) = query.to_next_char(COMMA){
+                Ok(value.to_string())
+            } 
+            else if query.current.find(ASSIGNMENT).is_none(){
+                Ok(query.to_end().to_string())
+            } 
+            else {
+                return Err(ParseKeyValueError::new(
+                    ParseKeyValueErrorReason::MissingValue { for_key: key.to_string() }
+                ))
+            }
+        },
+    }
+}
+
+
+fn get_nodes_for_relationship(query: &mut Query) -> Result<(u32, u32), String> {
+    todo!("parse get_nodes_for_relationship");
+}

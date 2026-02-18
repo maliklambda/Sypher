@@ -2,14 +2,12 @@
 #[derive(Debug)]
 pub struct ParseQueryError {
     pub reason: ParseErrorReason,
-    pub error_section: ErrorSection,
 }
 
 impl ParseQueryError {
-    pub fn new (reason: ParseErrorReason, err_section_start: usize, err_section_end: usize) -> ParseQueryError {
+    pub fn new (reason: ParseErrorReason) -> ParseQueryError {
         ParseQueryError {
             reason,
-            error_section: (err_section_start, err_section_end)
         }
     }
 
@@ -17,20 +15,24 @@ impl ParseQueryError {
     pub fn default () -> ParseQueryError {
         ParseQueryError {
             reason: ParseErrorReason::Default, 
-            error_section: (0,1),
         }
     }
 }
 
+impl From<ParseKeyValueError> for ParseQueryError {
+    fn from(value: ParseKeyValueError) -> Self {
+        ParseQueryError::new(
+            ParseErrorReason::ParseKeyValuePairs(value)
+        )
+    }
+}
 
 
 impl std::error::Error for ParseQueryError {}
 impl std::fmt::Display for ParseQueryError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Parsing query failed because of {} at ({} - {})", 
+        write!(f, "Parsing query failed because of {}", 
             self.reason,
-            self.error_section.0,
-            self.error_section.1,
         )
     }
 }
@@ -43,10 +45,11 @@ pub type ErrorSection = (usize, usize);
 pub enum ParseErrorReason {
     InvalidKeyword (String),
     InvalidObjectKind (String),
+    MissingIdentifier,
     IdentifierMissingType,
     MissingTypeName,
-    ParseKeyValuePairs,
-    TooLongIdentifier (usize, usize),
+    ParseKeyValuePairs(ParseKeyValueError),
+    TooLongIdentifier { got: usize, max_len: usize},
     Other,
     Default,
 }
@@ -57,10 +60,11 @@ impl std::fmt::Display for ParseErrorReason {
             match self {
                 ParseErrorReason::InvalidKeyword (invalid_kw) => &format!("Invalid key word: {invalid_kw}"),
                 ParseErrorReason::InvalidObjectKind(invalid_obj_kind) => &format!("Invalid object kind: {invalid_obj_kind}"),
+                ParseErrorReason::MissingIdentifier => "Missing identifier",
                 ParseErrorReason::IdentifierMissingType => "Identifier missing type",
                 ParseErrorReason::MissingTypeName => "Identifier missing type name",
-                ParseErrorReason::ParseKeyValuePairs => "Parse key value pairs failed",
-                ParseErrorReason::TooLongIdentifier(actual, max_len) => &format!("Identifier is too long. Max length: {max_len}, got {actual}"),
+                ParseErrorReason::ParseKeyValuePairs(kv_err) => &format!("Parse key value pairs failed: {kv_err}"),
+                ParseErrorReason::TooLongIdentifier{got, max_len} => &format!("Identifier is too long. Max length: {max_len}, got {got}"),
                 ParseErrorReason::Other => "Other",
                 ParseErrorReason::Default => "Default",
             }
@@ -71,13 +75,50 @@ impl std::fmt::Display for ParseErrorReason {
 
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct ParseKeyValueError {
+    pub reason: ParseKeyValueErrorReason,
+}
 
+impl std::error::Error for ParseKeyValueError {}
+impl std::fmt::Display for ParseKeyValueError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match &self.reason {
+            ParseKeyValueErrorReason::MissingSpace => write!(f, "Missing space"),
+            ParseKeyValueErrorReason::MissingAssignment => write!(f, "Missing assignment operator ('=')"),
+            ParseKeyValueErrorReason::MissingPropertyStr => write!(f, "Missing 'PROPERTY' string"),
+            ParseKeyValueErrorReason::UnclosedSingleQuote => write!(f, "Single quote (') was not closed"),
+            ParseKeyValueErrorReason::UnclosedDoubleQuote => write!(f, "Double quote (\") was not closed"),
+            ParseKeyValueErrorReason::MissingValue{for_key} => write!(f, "Missing value for key {for_key}"),
+            ParseKeyValueErrorReason::Default => write!(f, "Default KV-error"),
+        }
+    }
 }
 
 impl ParseKeyValueError {
-    pub fn new () -> ParseKeyValueError {
-        ParseKeyValueError {  }
+    pub fn new (reason: ParseKeyValueErrorReason) -> ParseKeyValueError {
+        ParseKeyValueError { reason }
+    }
+
+    pub fn default() -> ParseKeyValueError {
+        ParseKeyValueError { 
+            reason: ParseKeyValueErrorReason::Default,
+        }
     }
 }
+
+
+#[derive(Debug, PartialEq)]
+pub enum ParseKeyValueErrorReason {
+    MissingSpace,
+    MissingAssignment,
+    MissingPropertyStr,
+    MissingValue{for_key: String },
+    UnclosedSingleQuote,
+    UnclosedDoubleQuote,
+    Default,
+}
+
+
+
+

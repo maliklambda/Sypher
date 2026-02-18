@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::types::*;
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum QueryObject {
     ADD (AddQO),
     REMOVE (RemoveQO),
@@ -14,7 +14,7 @@ pub enum QueryObject {
 
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum AddQO {
     Node (AddNodeQO),
     Relationship (AddRelationshipQO),
@@ -23,14 +23,14 @@ pub enum AddQO {
     Constraint (),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct AddNodeQO {
     pub identifier: String,
     pub type_name: String,
     pub properties: HashMap<String, String>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct AddRelationshipQO {
     pub identifier: String,
     pub type_name: String,
@@ -40,7 +40,7 @@ pub struct AddRelationshipQO {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum RemoveQO {
     Node (),
     Relationship (),
@@ -49,14 +49,14 @@ pub enum RemoveQO {
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum GetQO {
     Node (NodeID),
     Relationship (RelationshipID),
 }
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum FindQO {
     Node (),
     Nodes (),
@@ -66,7 +66,7 @@ pub enum FindQO {
 
 
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum UpdateQO {
     Node (),
     Relationship (),

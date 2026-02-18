@@ -1,4 +1,4 @@
-use crate::parser::parse_query::parse_query;
+use crate::parser::{parse_query::parse_query, query::Query};
 
 
 mod parser;
@@ -7,8 +7,13 @@ mod constants;
 
 
 fn main() {
-    let query = "ADD NODE n1 TYPE Person PROPERTIES name=1, age=20".to_string();
-    match parse_query(query) {
+    let add_rel_query = Query::from_str(
+        "ADD RELATIONSHIP r1 TYPE LOVES FROM some_node_id TO other_node_id PROPERTIES since = 2012, reason = 'natural' "
+    );
+    let add_node_query = Query::from_str(
+        "ADD NODE n1 TYPE Person PROPERTIES name = 'Malik', age = 20"
+    );
+    match parse_query(add_node_query) {
         Ok(result) => println!("Query parsed successfully. Query object: {:?}", result),
         Err(err) => println!("Error parsing query: {:?}", err)
     }
