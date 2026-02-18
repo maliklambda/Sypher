@@ -168,12 +168,12 @@ pub fn get_nodes_for_relationship(query: &mut Query) -> Result<NodeTuple, ParseQ
 }
 
 pub fn get_object_kind(query: &mut Query) -> Result<ObjectKind, ParseQueryError> {
-    let (object_kind_str, query_rest) = query.current.split_once(SPACE).ok_or(
-        ParseQueryError::new(ParseErrorReason::InvalidObjectKind(query.to_string())),
-    )?;
-    let object_kind = ObjectKind::from_str(object_kind_str).ok_or(ParseQueryError::new(
-        ParseErrorReason::InvalidObjectKind(query.to_string()),
-    ))?;
+    let (object_kind_str, query_rest) = query
+        .current
+        .split_once(SPACE)
+        .ok_or(ParseQueryError::new(ParseErrorReason::InvalidObjectKind))?;
+    let object_kind = ObjectKind::from_str(object_kind_str)
+        .ok_or(ParseQueryError::new(ParseErrorReason::InvalidObjectKind))?;
     query.current = query_rest;
     query.offset += object_kind_str.len() + SPACE_LEN;
     Ok(object_kind)

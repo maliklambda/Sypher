@@ -37,7 +37,7 @@ pub enum ParseErrorReason {
     InvalidKeyword(String),
     MissingKeyword { expected: String },
     MissingValue { for_keyword: String },
-    InvalidObjectKind(String),
+    InvalidObjectKind,
     MissingIdentifier,
     IdentifierMissingType,
     MissingTypeName,
@@ -56,9 +56,7 @@ impl std::fmt::Display for ParseErrorReason {
                 ParseErrorReason::InvalidKeyword(invalid_kw) => {
                     &format!("Invalid key word: {invalid_kw}")
                 }
-                ParseErrorReason::InvalidObjectKind(invalid_obj_kind) => {
-                    &format!("Invalid object kind: {invalid_obj_kind}")
-                }
+                ParseErrorReason::InvalidObjectKind => "Invalid object kind",
                 ParseErrorReason::MissingIdentifier => "Missing identifier",
                 ParseErrorReason::MissingKeyword { expected } => {
                     &format!("Missing required keyword '{expected}'")
