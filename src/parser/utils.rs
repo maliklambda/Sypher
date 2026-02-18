@@ -32,7 +32,7 @@ pub fn get_type_name(query: &mut Query) -> Result<String, ParseQueryError> {
         ));
     }
     let type_name = query.to_next_space().ok_or(ParseQueryError::new(
-        ParseErrorReason::IdentifierMissingType,
+        ParseErrorReason::MissingValue { for_keyword: TYPE_STR.to_string() },
     ))?;
     Ok(type_name.to_string())
 }

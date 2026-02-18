@@ -5,6 +5,9 @@ pub mod keywords {
     pub const PROPERTIES_STR: &str = "PROPERTIES";
     pub const FROM_STR: &str = "FROM";
     pub const TO_STR: &str = "TO";
+    pub const MODE_STR: &str = "MODE";
+    pub const CASCADE_STR: &str = "CASCADE";
+    pub const SAFE_STR: &str = "SAFE";
 }
 
 pub mod command_kws {

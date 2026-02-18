@@ -1,4 +1,4 @@
-use crate::constants::keywords::{NODE_STR, RELATIONSHIP_STR};
+use crate::constants::keywords::{NODE_STR, RELATIONSHIP_STR, SAFE_STR, CASCADE_STR};
 use std::collections::HashMap;
 
 use crate::types::*;
@@ -51,10 +51,22 @@ pub struct RemoveNodeQO {
     pub mode: RemoveMode,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum RemoveMode {
     CASCADE,
     SAFE,
+}
+
+impl RemoveMode {
+    const STRINGS: &'static [(&'static str, Self)] = &[
+        (CASCADE_STR, RemoveMode::CASCADE),
+        (SAFE_STR, RemoveMode::SAFE),
+    ];
+
+    pub fn from_str(s: &str) -> Option<RemoveMode> {
+        let (_, mode) = Self::STRINGS.iter().find(|(value, _)| value == &s)?;
+        Some(mode.clone())
+    }
 }
 
 #[derive(Debug, PartialEq)]
