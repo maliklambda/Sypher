@@ -158,17 +158,16 @@ fn get_identifier (query: &mut Query) -> Result<String, ParseQueryError> {
 
 fn get_type_name (query: &mut Query) -> Result<String, ParseQueryError> {
     println!("query: {query}");
-    let (expected_type, query_rest) = query.current.split_once(SPACE)
+    let expected_type = query.to_next_space()
         .ok_or(ParseQueryError::new(ParseErrorReason::IdentifierMissingType))?;
     if expected_type != TYPE_STR {
         return Err(ParseQueryError::new(ParseErrorReason::IdentifierMissingType))
     }
-    let (type_name, query_rest) = query_rest.split_once(SPACE)
+    let type_name = query.to_next_space()
         .ok_or(ParseQueryError::new(ParseErrorReason::IdentifierMissingType))?;
-    query.current = query_rest;
-    query.offset += TYPE_STR.len() + SPACE_LEN + type_name.len() + SPACE_LEN;
     Ok(type_name.to_string())
 }
+
 
 fn parse_properties (query: &mut Query) -> Result<HashMap<String, String>, ParseQueryError> {
     let q = query.current.to_string();
@@ -259,5 +258,20 @@ fn get_value(query: &mut Query, key: &str) -> Result<String, ParseKeyValueError>
 
 
 fn get_nodes_for_relationship(query: &mut Query) -> Result<(u32, u32), String> {
-    todo!("parse get_nodes_for_relationship");
+    assert_eq!(FROM_STR, query.to_next_space()
+        .ok_or("no 'From' found".to_string())?
+    );
+    let from = query.to_next_space()
+        .ok_or("No next space after 'From'")?
+        .parse()
+        .map_err(|err| format!("Parsing of from-node failed: {}", err))?;
+    println!("current query: {query}");
+    assert_eq!(TO_STR, query.to_next_space()
+        .ok_or("no 'To' found".to_string())?
+    );
+    let to = query.to_next_space()
+        .ok_or("No next space after 'To'")?
+        .parse()
+        .map_err(|err| format!("Parsing of to-node failed: {}", err))?;
+    Ok((to, from))
 }

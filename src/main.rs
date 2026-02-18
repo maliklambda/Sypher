@@ -8,12 +8,12 @@ mod constants;
 
 fn main() {
     let add_rel_query = Query::from_str(
-        "ADD RELATIONSHIP r1 TYPE LOVES FROM some_node_id TO other_node_id PROPERTIES since = 2012, reason = 'natural' "
+        "ADD RELATIONSHIP r1 TYPE LOVES FROM 893641 TO 324218436 PROPERTIES since = 2012, reason = 'natural' "
     );
     let add_node_query = Query::from_str(
         "ADD NODE n1 TYPE Person PROPERTIES name = 'Malik', age = 20"
     );
-    match parse_query(add_node_query) {
+    match parse_query(add_rel_query) {
         Ok(result) => println!("Query parsed successfully. Query object: {:?}", result),
         Err(err) => println!("Error parsing query: {:?}", err)
     }
