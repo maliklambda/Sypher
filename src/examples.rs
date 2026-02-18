@@ -1,3 +1,4 @@
+#![allow(dead_code)]
 /*
 *
 * Example queries
