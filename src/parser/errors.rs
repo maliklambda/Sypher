@@ -34,15 +34,24 @@ pub type ErrorSection = (usize, usize);
 
 #[derive(Debug, PartialEq)]
 pub enum ParseErrorReason {
+    // Invalid
     InvalidKeyword(String),
+    InvalidObjectKind,
+    InvalidUpdateOperation,
+
+    // Missing
+    MissingIdentifier,
     MissingKeyword { expected: String },
     MissingValue { for_keyword: String },
-    InvalidObjectKind,
-    MissingIdentifier,
-    IdentifierMissingType,
     MissingTypeName,
+    MissingAssignment,
+    IdentifierMissingType,
+
+    // Parse
     ParseID(ParseIntError),
     ParseKeyValuePairs(ParseKeyValueError),
+
+    // Other
     UnknownRemoveMode,
     TooLongIdentifier { got: usize, max_len: usize },
     Other,
@@ -53,10 +62,18 @@ impl std::fmt::Display for ParseErrorReason {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = {
             match self {
+                // Invalid
                 ParseErrorReason::InvalidKeyword(invalid_kw) => {
                     &format!("Invalid key word: {invalid_kw}")
                 }
-                ParseErrorReason::InvalidObjectKind => "Invalid object kind",
+                ParseErrorReason::InvalidObjectKind => {
+                    "Invalid object kind. Valid object kinds are 'Node' and 'Relationship'"
+                }
+                ParseErrorReason::InvalidUpdateOperation => {
+                    "Invalid Update operation. Valid update operations are 'ADD', 'SET' and 'REMOVE'."
+                }
+
+                // Missing
                 ParseErrorReason::MissingIdentifier => "Missing identifier",
                 ParseErrorReason::MissingKeyword { expected } => {
                     &format!("Missing required keyword '{expected}'")
@@ -64,18 +81,23 @@ impl std::fmt::Display for ParseErrorReason {
                 ParseErrorReason::MissingValue { for_keyword } => {
                     &format!("Missing value for keyword '{for_keyword}'")
                 }
-                ParseErrorReason::IdentifierMissingType => "Identifier missing type",
                 ParseErrorReason::MissingTypeName => "Identifier missing type name",
+                ParseErrorReason::MissingAssignment => "Missing Assignment Operator ('=')",
+                ParseErrorReason::IdentifierMissingType => "Identifier missing type",
+
+                // Parse
                 ParseErrorReason::ParseKeyValuePairs(kv_err) => {
                     &format!("Parse key value pairs failed: {kv_err}")
                 }
+                ParseErrorReason::ParseID(err) => &format!("Parsing node failed: {err}"),
+
+                // Other
                 ParseErrorReason::UnknownRemoveMode => {
                     "Unknown remove mode. Valid remove modes are 'CASCADE' and 'SAFE'"
                 }
                 ParseErrorReason::TooLongIdentifier { got, max_len } => {
                     &format!("Identifier is too long. Max length: {max_len}, got {got}")
                 }
-                ParseErrorReason::ParseID(err) => &format!("Parsing node failed: {err}"),
                 ParseErrorReason::Other => "Other",
                 ParseErrorReason::Default => "Default",
             }

@@ -14,7 +14,8 @@ pub fn parse_query(query: Query) -> Result<QueryObject, ParseQueryError> {
         Operation::Add => QueryObject::ADD(add::parse_add(&mut query)?),
         Operation::Remove => QueryObject::REMOVE(remove::parse_remove(&mut query)?),
         Operation::Get => QueryObject::GET(get::parse_get(&mut query)?),
-        _ => todo!("Other operations of Operation"),
+        Operation::Find => QueryObject::FIND(find::parse_find(&mut query)?),
+        Operation::Update => QueryObject::UPDATE(update::parse_update(&mut query)?),
     };
     Ok(query_object)
 }
@@ -23,6 +24,7 @@ fn prepare_query(query: Query) -> Query {
     let new_query_str = query
         .current
         .strip_suffix(SEMICOLON)
-        .unwrap_or(query.current);
+        .unwrap_or(query.current)
+        .trim();
     Query::from_str(new_query_str)
 }

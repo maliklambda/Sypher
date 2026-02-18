@@ -1,4 +1,7 @@
-use crate::constants::keywords::{CASCADE_STR, NODE_STR, RELATIONSHIP_STR, SAFE_STR};
+use crate::constants::{
+    command_kws::{ADD_STR, REMOVE_STR},
+    keywords::{CASCADE_STR, NODE_STR, RELATIONSHIP_STR, SAFE_STR, SET_STR},
+};
 use std::collections::HashMap;
 
 use crate::types::*;
@@ -90,8 +93,47 @@ pub enum FindQO {
 
 #[derive(Debug, PartialEq)]
 pub enum UpdateQO {
-    Node(),
-    Relationship(),
+    Node(UpdateNodeQO),
+    Relationship(UpdateRelationshipQO),
+}
+
+#[derive(Debug, PartialEq)]
+pub struct UpdateNodeQO {
+    pub id: NodeID,
+    pub operations: Vec<UpdateOperation>,
+}
+
+#[derive(Debug, PartialEq)]
+pub enum UpdateOperation {
+    Set { property: String, value: String },
+    Remove { property: String },
+    Add { property: String, value: String },
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum UpdateOperationKind {
+    SET,
+    REMOVE,
+    ADD,
+}
+
+impl UpdateOperationKind {
+    const STRINGS: &'static [(&'static str, UpdateOperationKind)] = &[
+        (SET_STR, UpdateOperationKind::SET),
+        (REMOVE_STR, UpdateOperationKind::REMOVE),
+        (ADD_STR, UpdateOperationKind::ADD),
+    ];
+
+    pub fn from_str(s: &str) -> Option<UpdateOperationKind> {
+        let (_, operation) = Self::STRINGS.iter().find(|(value, _)| value == &s)?;
+        Some(operation.clone())
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub struct UpdateRelationshipQO {
+    pub id: NodeID,
+    pub operations: Vec<UpdateOperation>,
 }
 
 #[derive(Debug)]

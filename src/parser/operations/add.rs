@@ -2,14 +2,12 @@ use super::super::{errors::*, objects::*, query::Query, utils::*};
 
 pub fn parse_add(query: &mut Query) -> Result<AddQO, ParseQueryError> {
     println!("Parsing add: {query}");
-    let object_kind = get_object_kind(query)?;
     let add_query_object = {
-        match object_kind {
+        match get_object_kind(query)? {
             ObjectKind::Node => AddQO::Node(parse_add_node(query)?),
             ObjectKind::Relationship => AddQO::Relationship(parse_add_relationship(query)?),
         }
     };
-    println!("object kind is {:?}", object_kind);
     Ok(add_query_object)
 }
 

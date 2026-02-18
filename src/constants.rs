@@ -8,6 +8,12 @@ pub mod keywords {
     pub const MODE_STR: &str = "MODE";
     pub const CASCADE_STR: &str = "CASCADE";
     pub const SAFE_STR: &str = "SAFE";
+
+    // update operations
+    pub const ADD_STR: &str = "ADD";
+    pub const SET_STR: &str = "SET";
+    pub const REMOVE_STR: &str = "REMOVE";
+    pub const VALUE_STR: &str = "VALUE";
 }
 
 pub mod command_kws {

@@ -8,15 +8,13 @@ use super::super::{objects::*, query::Query, utils::*};
 
 pub fn parse_remove(query: &mut Query) -> Result<RemoveQO, ParseQueryError> {
     println!("Parsing remove: {query}");
-    let object_kind = get_object_kind(query)?;
     let remove_query_object = {
-        match object_kind {
+        match get_object_kind(query)? {
             ObjectKind::Node => RemoveQO::Node(parse_remove_node(query)?),
             ObjectKind::Relationship => RemoveQO::Relationship(parse_remove_relationship(query)?),
             _ => todo!("Parse remove of other objects"),
         }
     };
-    println!("object kind is {:?}", object_kind);
     Ok(remove_query_object)
 }
 
