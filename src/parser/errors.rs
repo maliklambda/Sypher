@@ -71,7 +71,9 @@ impl std::fmt::Display for ParseErrorReason {
                 ParseErrorReason::ParseKeyValuePairs(kv_err) => {
                     &format!("Parse key value pairs failed: {kv_err}")
                 }
-                ParseErrorReason::UnknownRemoveMode => "Unknown remove mode. Valid remove modes are 'CASCADE' and 'SAFE'",
+                ParseErrorReason::UnknownRemoveMode => {
+                    "Unknown remove mode. Valid remove modes are 'CASCADE' and 'SAFE'"
+                }
                 ParseErrorReason::TooLongIdentifier { got, max_len } => {
                     &format!("Identifier is too long. Max length: {max_len}, got {got}")
                 }

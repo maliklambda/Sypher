@@ -1,6 +1,6 @@
 use crate::constants::command_kws::REMOVE_STR;
-use crate::parser::errors::ParseErrorReason;
 use crate::constants::keywords::MODE_STR;
+use crate::parser::errors::ParseErrorReason;
 
 use super::super::errors::ParseQueryError;
 use super::super::objects::RemoveQO;
@@ -24,9 +24,11 @@ fn parse_remove_node(query: &mut Query) -> Result<RemoveNodeQO, ParseQueryError>
     println!("parsing remove node: {query}");
     let remove_id = query
         .to_next_space()
-        .ok_or(ParseQueryError::new(crate::parser::errors::ParseErrorReason::MissingValue {
-            for_keyword: REMOVE_STR.to_string(),
-        }))?
+        .ok_or(ParseQueryError::new(
+            crate::parser::errors::ParseErrorReason::MissingValue {
+                for_keyword: REMOVE_STR.to_string(),
+            },
+        ))?
         .parse()
         .map_err(|err| ParseQueryError::new(ParseErrorReason::ParseNode(err)))?;
 
@@ -40,7 +42,6 @@ fn parse_remove_node(query: &mut Query) -> Result<RemoveNodeQO, ParseQueryError>
     })
 }
 
-
 fn parse_remove_relationship(query: &mut Query) -> Result<RemoveRelationshipQO, ParseQueryError> {
     println!("parsing remove node: {query}");
     let remove_id = query
@@ -51,15 +52,18 @@ fn parse_remove_relationship(query: &mut Query) -> Result<RemoveRelationshipQO, 
     Ok(RemoveRelationshipQO { id: remove_id })
 }
 
-
-
 fn get_remove_mode(query: &mut Query) -> Result<RemoveMode, ParseQueryError> {
     query.trim_left();
-    if query.to_next_space().ok_or(ParseQueryError::new(
-        ParseErrorReason::MissingKeyword { expected: MODE_STR.to_string() }
-    ))? != MODE_STR
+    if query
+        .to_next_space()
+        .ok_or(ParseQueryError::new(ParseErrorReason::MissingKeyword {
+            expected: MODE_STR.to_string(),
+        }))?
+        != MODE_STR
     {
-        return Err(ParseQueryError::new(ParseErrorReason::MissingKeyword { expected: MODE_STR.to_string() }));
+        return Err(ParseQueryError::new(ParseErrorReason::MissingKeyword {
+            expected: MODE_STR.to_string(),
+        }));
     }
     println!("now = {query}");
     let remove_mode_str = query.to_end().trim_end();
@@ -68,6 +72,3 @@ fn get_remove_mode(query: &mut Query) -> Result<RemoveMode, ParseQueryError> {
         .ok_or(ParseQueryError::new(ParseErrorReason::UnknownRemoveMode))?;
     Ok(mode)
 }
-
-
-
