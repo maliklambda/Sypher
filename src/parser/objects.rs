@@ -1,7 +1,7 @@
 use crate::{
     constants::keywords::{NODE_STR, RELATIONSHIP_STR},
     parser::objects::{
-        add::AddQO, find::FindQO, get::GetQO, parse_match::MatchQO, remove::RemoveQO,
+        add::AddQO, get::GetQO, parse_match::MatchQO, remove::RemoveQO,
         update::UpdateQO,
     },
 };
@@ -11,7 +11,6 @@ pub enum QueryObject {
     Add(AddQO),
     Remove(RemoveQO),
     Get(GetQO),
-    Find(FindQO),
     Match(MatchQO),
     Update(UpdateQO),
 }
@@ -128,16 +127,6 @@ pub mod get {
     pub enum GetQO {
         Node(NodeID),
         Relationship(RelationshipID),
-    }
-}
-
-pub mod find {
-    #[derive(Debug, PartialEq)]
-    pub enum FindQO {
-        Node(),
-        Nodes(),
-        Relationship(),
-        Relationships(),
     }
 }
 

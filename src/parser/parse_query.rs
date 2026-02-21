@@ -6,7 +6,7 @@ use crate::{
     parser::{
         errors::ParseQueryError,
         objects::{QueryObject, Subquery},
-        operations::{add, find, get, ops::Operation, parse_match, remove, update},
+        operations::{add, get, ops::Operation, parse_match, remove, update},
         query::Query,
         utils::get_operation,
     },
@@ -20,7 +20,6 @@ pub fn parse_query(query: Query) -> Result<QueryObject, ParseQueryError> {
         Operation::Add => QueryObject::Add(add::parse_add(&mut query)?),
         Operation::Remove => QueryObject::Remove(remove::parse_remove(&mut query)?),
         Operation::Get => QueryObject::Get(get::parse_get(&mut query)?),
-        Operation::Find => QueryObject::Find(find::parse_find(&mut query)?),
         Operation::Match => QueryObject::Match(parse_match::parse_match(&mut query)?),
         Operation::Update => QueryObject::Update(update::parse_update(&mut query)?),
     };
