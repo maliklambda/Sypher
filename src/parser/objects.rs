@@ -142,10 +142,16 @@ pub mod find {
 }
 
 pub mod parse_match {
+    use std::collections::HashMap;
+
     use crate::types::IdentifierName;
 
     #[derive(Debug, PartialEq)]
-    pub enum MatchQO {}
+    pub struct MatchQO {
+        pub match_objects: HashMap<IdentifierName, MatchObject>,
+        pub filters: HashMap<IdentifierName, FilterCondition>,
+        pub return_values: Vec<ReturnValue>,
+    }
 
     #[derive(Debug, PartialEq)]
     pub struct MatchObject {
@@ -171,6 +177,23 @@ pub mod parse_match {
     pub enum RelationshipDirection {
         Ingoing,
         Outgoing
+    }
+
+    #[derive(Debug, PartialEq)]
+    pub struct FilterCondition {}
+
+    #[derive(Debug, PartialEq)]
+    pub struct ReturnValue {
+        identifier_name: IdentifierName,
+        property: Option<String>,
+    }
+
+    impl ReturnValue {
+        pub fn new (identifier_name: IdentifierName, property: Option<String>) -> Self {
+            Self {
+                identifier_name, property
+            }
+        }
     }
 }
 

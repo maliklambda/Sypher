@@ -190,6 +190,11 @@ impl std::fmt::Display for ParseMatchError {
                 "Parsing name & type failed for pattern: {}",
                 self.pattern
             ),
+            ParseMatchErrorReason::ParseReturnValues => write!(
+                f,
+                "Parsing return values failed for pattern: {}",
+                self.pattern
+            ),
         }
     }
 }
@@ -205,4 +210,5 @@ pub enum ParseMatchErrorReason {
     StartWithoutNode,
     ParseNameType,
     UnclosedRelationship,
+    ParseReturnValues,
 }

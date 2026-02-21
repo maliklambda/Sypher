@@ -49,11 +49,13 @@ pub mod command_kws {
 }
 
 pub mod special_chars {
+    const COMMA: char = ',';
     pub const SPACE: char = ' ';
     pub const SPACE_LEN: usize = 1;
     pub const QUERY_SEPARATOR: char = ';';
-    pub const KV_PAIR_SEPARATOR: char = ',';
-    pub const UPDATE_OPERATION_SEPARATOR: char = ',';
+    pub const KV_PAIR_SEPARATOR: char = COMMA;
+    pub const UPDATE_OPERATION_SEPARATOR: char = COMMA;
+    pub const RETURN_VALUE_SEPARATOR: char = COMMA;
     pub const DOT: char = '.';
     pub const ASSIGNMENT: char = '=';
     pub const DOUBLE_QUOTE: char = '"';

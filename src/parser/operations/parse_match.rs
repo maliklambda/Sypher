@@ -3,11 +3,11 @@ use std::collections::HashMap;
 use crate::{
     constants::{
         keywords::{condition::WHERE_STR, parse_match::RETURN_STR},
-        special_chars::{SPACE, parse_match::*},
+        special_chars::{DOT, RETURN_VALUE_SEPARATOR, SPACE, parse_match::*},
     },
     parser::{
         errors::{ParseErrorReason, ParseMatchError, ParseMatchErrorReason, ParseQueryError},
-        objects::parse_match::{IdentifierData, MatchObject, MatchQO, RelationshipDirection},
+        objects::parse_match::{IdentifierData, MatchObject, MatchQO, RelationshipDirection, ReturnValue},
         query::Query,
     },
     types::IdentifierName,
@@ -32,12 +32,18 @@ pub fn parse_match(query: &mut Query) -> Result<MatchQO, ParseQueryError> {
     ))?;
     println!("conditions: {conditions_str}");
     // parse conditions
+    let filters = HashMap::new();
 
     let return_values_str = query.to_end();
     println!("return values: {return_values_str}");
     // parse return values
+    let return_values = parse_return_values(return_values_str)?;
 
-    todo!("Finish parsing MATCH");
+    Ok(MatchQO {
+        match_objects,
+        filters,
+        return_values,
+    })
 }
 
 fn parse_pattern(
@@ -197,3 +203,29 @@ fn parse_name_type<'a>(query: &'a mut Query, end_str: &str) -> Result<(&'a str, 
 fn alphabetic_chars_only (input: &str) -> String {
     input.chars().filter(|c| c.is_alphabetic()).collect::<String>()
 }
+
+
+
+
+fn parse_return_values (s: &str) -> Result<Vec<ReturnValue>, ParseMatchError> {
+    let s = s.replace(SPACE, "");
+    let mut values: Vec<ReturnValue> = vec![];
+    for val in s.split(RETURN_VALUE_SEPARATOR) {
+        println!("value: {:?}", val);
+        let parts = val.split(DOT).collect::<Vec<&str>>();
+        if parts.is_empty() {
+            return Err(ParseMatchError { reason: ParseMatchErrorReason::ParseReturnValues, pattern: val.to_string() })
+        }
+        let id_name = parts[0].to_string();
+        let prop_name: Option<String> = {
+            if parts.len() == 2 { Some(parts[1].to_string()) }
+            else { None }
+        };
+        values.push(ReturnValue::new(id_name, prop_name))
+    }
+    Ok(values)
+}
+
+
+
+
