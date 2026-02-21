@@ -43,7 +43,6 @@ pub mod command_kws {
     pub const ADD_STR: &str = "ADD";
     pub const REMOVE_STR: &str = "REMOVE";
     pub const GET_STR: &str = "GET";
-    pub const FIND_STR: &str = "FIND";
     pub const MATCH_STR: &str = "MATCH";
     pub const UPDATE_STR: &str = "UPDATE";
 }
