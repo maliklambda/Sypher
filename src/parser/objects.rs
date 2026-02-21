@@ -1,147 +1,19 @@
-use crate::constants::{
-    command_kws::{ADD_STR, REMOVE_STR},
-    keywords::{
-        NODE_STR, RELATIONSHIP_STR,
-        remove::{CASCADE_STR, SAFE_STR},
-        update::SET_STR,
+use crate::{
+    constants::keywords::{NODE_STR, RELATIONSHIP_STR},
+    parser::objects::{
+        add::AddQO, find::FindQO, get::GetQO, parse_match::MatchQO, remove::RemoveQO,
+        update::UpdateQO,
     },
 };
-use std::collections::HashMap;
-
-use crate::types::*;
 
 #[derive(Debug, PartialEq)]
 pub enum QueryObject {
-    ADD(AddQO),
-    REMOVE(RemoveQO),
-    GET(GetQO),
-    FIND(FindQO),
-    MATCH(MatchQO),
-    UPDATE(UpdateQO),
-}
-
-#[derive(Debug, PartialEq)]
-pub enum AddQO {
-    Node(AddNodeQO),
-    Relationship(AddRelationshipQO),
-    Index(),
-    Properties(),
-    Constraint(),
-}
-
-#[derive(Debug, PartialEq)]
-pub struct AddNodeQO {
-    pub identifier: String,
-    pub type_name: String,
-    pub properties: HashMap<String, String>,
-}
-
-#[derive(Debug, PartialEq)]
-pub struct AddRelationshipQO {
-    pub identifier: String,
-    pub type_name: String,
-    pub from: NodeID,
-    pub to: NodeID,
-    pub properties: HashMap<String, String>,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum RemoveQO {
-    Node(RemoveNodeQO),
-    Relationship(RemoveRelationshipQO),
-    Index(),
-    Constraint(),
-}
-
-#[derive(Debug, PartialEq)]
-pub struct RemoveNodeQO {
-    pub id: NodeID,
-    pub mode: RemoveMode,
-}
-
-#[derive(Debug, PartialEq, Clone)]
-pub enum RemoveMode {
-    CASCADE,
-    SAFE,
-}
-
-impl RemoveMode {
-    const STRINGS: &'static [(&'static str, Self)] = &[
-        (CASCADE_STR, RemoveMode::CASCADE),
-        (SAFE_STR, RemoveMode::SAFE),
-    ];
-
-    pub fn from_str(s: &str) -> Option<RemoveMode> {
-        let (_, mode) = Self::STRINGS.iter().find(|(value, _)| value == &s)?;
-        Some(mode.clone())
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub struct RemoveRelationshipQO {
-    pub id: RelationshipID,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum GetQO {
-    Node(NodeID),
-    Relationship(RelationshipID),
-}
-
-#[derive(Debug, PartialEq)]
-pub enum FindQO {
-    Node(),
-    Nodes(),
-    Relationship(),
-    Relationships(),
-}
-
-#[derive(Debug, PartialEq)]
-pub enum MatchQO {}
-
-#[derive(Debug, PartialEq)]
-pub enum UpdateQO {
-    Node(UpdateNodeQO),
-    Relationship(UpdateRelationshipQO),
-}
-
-#[derive(Debug, PartialEq)]
-pub struct UpdateNodeQO {
-    pub id: NodeID,
-    pub operations: Vec<UpdateOperation>,
-}
-
-#[derive(Debug, PartialEq)]
-pub enum UpdateOperation {
-    Set { property: String, value: String },
-    Remove { property: String },
-    Add { property: String, value: String },
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum UpdateOperationKind {
-    SET,
-    REMOVE,
-    ADD,
-}
-
-impl UpdateOperationKind {
-    const STRINGS: &'static [(&'static str, UpdateOperationKind)] = &[
-        (SET_STR, UpdateOperationKind::SET),
-        (REMOVE_STR, UpdateOperationKind::REMOVE),
-        (ADD_STR, UpdateOperationKind::ADD),
-    ];
-
-    pub fn from_str(s: &str) -> Option<UpdateOperationKind> {
-        let (_, operation) = Self::STRINGS.iter().find(|(value, _)| value == &s)?;
-        Some(operation.clone())
-    }
-}
-
-#[derive(Debug, PartialEq)]
-pub struct UpdateRelationshipQO {
-    pub id: NodeID,
-    pub operations: Vec<UpdateOperation>,
+    Add(AddQO),
+    Remove(RemoveQO),
+    Get(GetQO),
+    Find(FindQO),
+    Match(MatchQO),
+    Update(UpdateQO),
 }
 
 #[derive(Debug)]
@@ -171,6 +43,189 @@ impl ObjectKind {
     pub fn from_str(s: &str) -> Option<ObjectKind> {
         let (_, kind) = Self::STRINGS.iter().find(|(value, _)| value == &s)?;
         Some(kind.clone())
+    }
+}
+
+pub mod add {
+    use std::collections::HashMap;
+
+    use crate::types::NodeID;
+
+    #[derive(Debug, PartialEq)]
+    pub enum AddQO {
+        Node(AddNodeQO),
+        Relationship(AddRelationshipQO),
+        Index(),
+        Properties(),
+        Constraint(),
+    }
+
+    #[derive(Debug, PartialEq)]
+    pub struct AddNodeQO {
+        pub identifier: String,
+        pub type_name: String,
+        pub properties: HashMap<String, String>,
+    }
+
+    #[derive(Debug, PartialEq)]
+    pub struct AddRelationshipQO {
+        pub identifier: String,
+        pub type_name: String,
+        pub from: NodeID,
+        pub to: NodeID,
+        pub properties: HashMap<String, String>,
+    }
+}
+
+pub mod remove {
+    use crate::{
+        constants::keywords::remove::{CASCADE_STR, SAFE_STR},
+        types::{NodeID, RelationshipID},
+    };
+
+    #[derive(Debug, PartialEq)]
+    pub enum RemoveQO {
+        Node(RemoveNodeQO),
+        Relationship(RemoveRelationshipQO),
+        Index(),
+        Constraint(),
+    }
+
+    #[derive(Debug, PartialEq)]
+    pub struct RemoveNodeQO {
+        pub id: NodeID,
+        pub mode: RemoveMode,
+    }
+
+    #[derive(Debug, PartialEq, Clone)]
+    pub enum RemoveMode {
+        CASCADE,
+        SAFE,
+    }
+
+    impl RemoveMode {
+        const STRINGS: &'static [(&'static str, Self)] = &[
+            (CASCADE_STR, RemoveMode::CASCADE),
+            (SAFE_STR, RemoveMode::SAFE),
+        ];
+
+        pub fn from_str(s: &str) -> Option<RemoveMode> {
+            let (_, mode) = Self::STRINGS.iter().find(|(value, _)| value == &s)?;
+            Some(mode.clone())
+        }
+    }
+
+    #[derive(Debug, PartialEq)]
+    pub struct RemoveRelationshipQO {
+        pub id: RelationshipID,
+    }
+}
+
+pub mod get {
+    use crate::types::{NodeID, RelationshipID};
+
+    #[derive(Debug, PartialEq)]
+    pub enum GetQO {
+        Node(NodeID),
+        Relationship(RelationshipID),
+    }
+}
+
+pub mod find {
+    #[derive(Debug, PartialEq)]
+    pub enum FindQO {
+        Node(),
+        Nodes(),
+        Relationship(),
+        Relationships(),
+    }
+}
+
+pub mod parse_match {
+    use crate::types::IdentifierName;
+
+    #[derive(Debug, PartialEq)]
+    pub enum MatchQO {}
+
+    #[derive(Debug, PartialEq)]
+    pub struct MatchObject {
+        pub name: IdentifierName,
+        pub object_type: String,
+        pub data: IdentifierData,
+    }
+
+    #[derive(Debug, PartialEq)]
+    pub enum IdentifierData {
+        Node {
+            outgoing: Option<IdentifierName>,
+            ingoing: Option<IdentifierName>,
+        },
+        Relationship {
+            direction: RelationshipDirection,
+            start: Option<IdentifierName>,
+            end: Option<IdentifierName>,
+        },
+    }
+    
+    #[derive(Debug, PartialEq)]
+    pub enum RelationshipDirection {
+        Ingoing,
+        Outgoing
+    }
+}
+
+pub mod update {
+    use crate::{
+        constants::{
+            command_kws::{ADD_STR, REMOVE_STR},
+            keywords::update::SET_STR,
+        },
+        types::NodeID,
+    };
+
+    #[derive(Debug, PartialEq)]
+    pub enum UpdateQO {
+        Node(UpdateNodeQO),
+        Relationship(UpdateRelationshipQO),
+    }
+
+    #[derive(Debug, PartialEq)]
+    pub struct UpdateNodeQO {
+        pub id: NodeID,
+        pub operations: Vec<UpdateOperation>,
+    }
+
+    #[derive(Debug, PartialEq)]
+    pub enum UpdateOperation {
+        Set { property: String, value: String },
+        Remove { property: String },
+        Add { property: String, value: String },
+    }
+
+    #[derive(Debug, Clone, PartialEq)]
+    pub enum UpdateOperationKind {
+        SET,
+        REMOVE,
+        ADD,
+    }
+
+    impl UpdateOperationKind {
+        const STRINGS: &'static [(&'static str, UpdateOperationKind)] = &[
+            (SET_STR, UpdateOperationKind::SET),
+            (REMOVE_STR, UpdateOperationKind::REMOVE),
+            (ADD_STR, UpdateOperationKind::ADD),
+        ];
+
+        pub fn from_str(s: &str) -> Option<UpdateOperationKind> {
+            let (_, operation) = Self::STRINGS.iter().find(|(value, _)| value == &s)?;
+            Some(operation.clone())
+        }
+    }
+
+    #[derive(Debug, PartialEq)]
+    pub struct UpdateRelationshipQO {
+        pub id: NodeID,
+        pub operations: Vec<UpdateOperation>,
     }
 }
 

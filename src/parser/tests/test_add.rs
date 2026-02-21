@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 
-use crate::parser::errors::ParseErrorReason::ParseKeyValuePairs;
-use crate::parser::errors::ParseKeyValueErrorReason::MissingPropertyStr;
 use crate::parser::{
-    errors::{ParseErrorReason, ParseKeyValueError, ParseQueryError},
-    objects::{AddNodeQO, AddQO, AddRelationshipQO, QueryObject},
+    errors::{ParseErrorReason, ParseKeyValueError, ParseKeyValueErrorReason, ParseQueryError},
+    objects::{
+        QueryObject,
+        add::{AddNodeQO, AddQO, AddRelationshipQO},
+    },
     parse_query::parse_query,
     query::Query,
 };
@@ -37,8 +38,8 @@ fn test_add_node_fails() {
     let res = parse_query(invalid_query);
     match res {
         Err(ParseQueryError {
-            reason: ParseKeyValuePairs(ParseKeyValueError { reason: r }),
-        }) => assert_eq!(r, MissingPropertyStr),
+            reason: ParseErrorReason::ParseKeyValuePairs(ParseKeyValueError { reason: r }),
+        }) => assert_eq!(r, ParseKeyValueErrorReason::MissingPropertyStr),
         _ => panic!("Expected query \"{invalid_query}\" to return an error, but it passed"),
     }
 }

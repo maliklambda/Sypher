@@ -7,8 +7,10 @@ use crate::{
     parser::{
         errors::{ParseErrorReason, ParseQueryError},
         objects::{
-            ObjectKind, UpdateNodeQO, UpdateOperation, UpdateOperationKind, UpdateQO,
-            UpdateRelationshipQO,
+            ObjectKind,
+            update::{
+                UpdateNodeQO, UpdateOperation, UpdateOperationKind, UpdateQO, UpdateRelationshipQO,
+            },
         },
         query::Query,
         utils::{get_object_kind, kv_get_value},

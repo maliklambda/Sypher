@@ -2,7 +2,7 @@ use crate::constants::{command_kws::UPDATE_STR, keywords::NODE_STR};
 use crate::parser::errors::ParseErrorReason;
 use crate::parser::{
     errors::ParseQueryError,
-    objects::{QueryObject, UpdateQO},
+    objects::{QueryObject, update::UpdateQO},
     parse_query::parse_query,
     query::Query,
 };

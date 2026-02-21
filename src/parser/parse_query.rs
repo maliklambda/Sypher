@@ -17,12 +17,12 @@ pub fn parse_query(query: Query) -> Result<QueryObject, ParseQueryError> {
     let mut query = prepare_query(query);
     let operation = get_operation(&mut query)?;
     let query_object: QueryObject = match operation {
-        Operation::Add => QueryObject::ADD(add::parse_add(&mut query)?),
-        Operation::Remove => QueryObject::REMOVE(remove::parse_remove(&mut query)?),
-        Operation::Get => QueryObject::GET(get::parse_get(&mut query)?),
-        Operation::Find => QueryObject::FIND(find::parse_find(&mut query)?),
-        Operation::Match => QueryObject::MATCH(parse_match::parse_match(&mut query)?),
-        Operation::Update => QueryObject::UPDATE(update::parse_update(&mut query)?),
+        Operation::Add => QueryObject::Add(add::parse_add(&mut query)?),
+        Operation::Remove => QueryObject::Remove(remove::parse_remove(&mut query)?),
+        Operation::Get => QueryObject::Get(get::parse_get(&mut query)?),
+        Operation::Find => QueryObject::Find(find::parse_find(&mut query)?),
+        Operation::Match => QueryObject::Match(parse_match::parse_match(&mut query)?),
+        Operation::Update => QueryObject::Update(update::parse_update(&mut query)?),
     };
     Ok(query_object)
 }

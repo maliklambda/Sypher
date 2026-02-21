@@ -30,6 +30,10 @@ pub mod keywords {
         pub const CONDITION_GROUP_END: char = ')';
     }
 
+    pub mod parse_match {
+        pub const RETURN_STR: &str = "RETURN";
+    }
+
     pub mod supqueries {
         pub const SUBQ_PATTERN: &str = "SUBQ";
     }

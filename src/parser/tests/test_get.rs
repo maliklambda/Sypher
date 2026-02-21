@@ -1,5 +1,5 @@
 use crate::parser::{
-    objects::{GetQO, QueryObject},
+    objects::{QueryObject, get::GetQO},
     parse_query::parse_query,
     query::Query,
 };

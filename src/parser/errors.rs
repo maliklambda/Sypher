@@ -23,6 +23,12 @@ impl From<ParseKeyValueError> for ParseQueryError {
     }
 }
 
+impl From<ParseMatchError> for ParseQueryError {
+    fn from(value: ParseMatchError) -> Self {
+        ParseQueryError::new(ParseErrorReason::ParseMatchError(value))
+    }
+}
+
 impl std::error::Error for ParseQueryError {}
 impl std::fmt::Display for ParseQueryError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -50,6 +56,7 @@ pub enum ParseErrorReason {
     // Parse
     ParseID(ParseIntError),
     ParseKeyValuePairs(ParseKeyValueError),
+    ParseMatchError(ParseMatchError),
 
     // Other
     UnknownRemoveMode,
@@ -90,6 +97,7 @@ impl std::fmt::Display for ParseErrorReason {
                     &format!("Parse key value pairs failed: {kv_err}")
                 }
                 ParseErrorReason::ParseID(err) => &format!("Parsing node failed: {err}"),
+                ParseErrorReason::ParseMatchError(err) => &format!("Parsing match failed: {err}"),
 
                 // Other
                 ParseErrorReason::UnknownRemoveMode => {
@@ -155,4 +163,46 @@ pub enum ParseKeyValueErrorReason {
     UnclosedSingleQuote,
     UnclosedDoubleQuote,
     Default,
+}
+
+#[derive(Debug, PartialEq)]
+pub struct ParseMatchError {
+    pub reason: ParseMatchErrorReason,
+    pub pattern: String,
+}
+
+impl std::error::Error for ParseMatchError {}
+impl std::fmt::Display for ParseMatchError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.reason {
+            ParseMatchErrorReason::StartWithoutNode => write!(
+                f,
+                "pattern '{}' does not start with a Node: '(name:type)'",
+                self.pattern
+            ),
+            ParseMatchErrorReason::UnclosedRelationship => write!(
+                f,
+                "Relationship was not closed properly in pattern {}",
+                self.pattern
+            ),
+            ParseMatchErrorReason::ParseNameType => write!(
+                f,
+                "Parsing name & type failed for pattern: {}",
+                self.pattern
+            ),
+        }
+    }
+}
+
+impl ParseMatchError {
+    pub fn new(reason: ParseMatchErrorReason, pattern: String) -> Self {
+        ParseMatchError { reason, pattern }
+    }
+}
+
+#[derive(Debug, PartialEq)]
+pub enum ParseMatchErrorReason {
+    StartWithoutNode,
+    ParseNameType,
+    UnclosedRelationship,
 }

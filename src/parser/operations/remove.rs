@@ -2,7 +2,10 @@ use crate::{
     constants::{command_kws::REMOVE_STR, keywords::remove::MODE_STR},
     parser::{
         errors::{ParseErrorReason, ParseQueryError},
-        objects::{ObjectKind, RemoveMode, RemoveNodeQO, RemoveQO, RemoveRelationshipQO},
+        objects::{
+            ObjectKind,
+            remove::{RemoveMode, RemoveNodeQO, RemoveQO, RemoveRelationshipQO},
+        },
         query::Query,
         utils::get_object_kind,
     },

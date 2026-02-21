@@ -50,15 +50,19 @@ impl Query<'_> {
     }
 
     pub fn to_next_space(&mut self) -> Option<&str> {
-        let (content, query_rest) = self.current.split_once(SPACE)?;
-        self.current = query_rest;
-        // self.current = &self.current[content.len()..];
-        self.offset += content.len() + SPACE_LEN;
-        Some(content)
+        self.to_next_char(SPACE)
     }
 
     pub fn to_next_char(&mut self, c: char) -> Option<&str> {
         let (content, query_rest) = self.current.split_once(c)?;
+        self.current = query_rest;
+        // self.current = &self.current[content.len()..];
+        self.offset += content.len() + 1; // +1 for character length
+        Some(content)
+    }
+
+    pub fn to_next_str(&mut self, s: &str) -> Option<&str> {
+        let (content, query_rest) = self.current.split_once(s)?;
         self.current = query_rest;
         // self.current = &self.current[content.len()..];
         self.offset += content.len() + 1; // +1 for character length

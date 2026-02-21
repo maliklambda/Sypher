@@ -2,7 +2,10 @@ use std::num::ParseIntError;
 
 use crate::parser::{
     errors::{ParseErrorReason, ParseQueryError},
-    objects::{QueryObject, RemoveMode::CASCADE, RemoveNodeQO, RemoveQO, RemoveRelationshipQO},
+    objects::{
+        QueryObject,
+        remove::{RemoveMode, RemoveNodeQO, RemoveQO, RemoveRelationshipQO},
+    },
     parse_query::parse_query,
     query::Query,
 };
@@ -11,7 +14,7 @@ use crate::parser::{
 fn test_remove_node() {
     let expected_qo = QueryObject::REMOVE(RemoveQO::Node(RemoveNodeQO {
         id: 1234,
-        mode: crate::parser::objects::RemoveMode::CASCADE,
+        mode: RemoveMode::CASCADE,
     }));
     let query = Query::from_str("REMOVE NODE 1234 MODE CASCADE");
     assert_eq!(parse_query(query).unwrap(), expected_qo);

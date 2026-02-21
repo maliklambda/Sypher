@@ -6,7 +6,7 @@ mod parser;
 mod types;
 
 fn main() {
-    let query = Query::from_str(examples::MATCH_QUERY);
+    let query = Query::from_str(examples::MATCH_QUERY_INGOING);
 
     match parse_query(query) {
         Ok(result) => println!("Query parsed successfully. Query object: {:?}", result),

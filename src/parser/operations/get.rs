@@ -1,7 +1,7 @@
 use crate::{
     parser::{
         errors::{ParseErrorReason, ParseQueryError},
-        objects::{GetQO, ObjectKind},
+        objects::{ObjectKind, get::GetQO},
         query::Query,
         utils::get_object_kind,
     },

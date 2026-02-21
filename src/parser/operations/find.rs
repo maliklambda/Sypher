@@ -1,6 +1,6 @@
 use crate::parser::objects::ObjectKind;
 use crate::parser::{
-    errors::ParseQueryError, objects::FindQO, query::Query, utils::get_object_kind,
+    errors::ParseQueryError, objects::find::FindQO, query::Query, utils::get_object_kind,
 };
 
 pub fn parse_find(query: &mut Query) -> Result<FindQO, ParseQueryError> {
