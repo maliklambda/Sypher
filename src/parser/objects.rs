@@ -172,11 +172,11 @@ pub mod parse_match {
             end: Option<IdentifierName>,
         },
     }
-    
+
     #[derive(Debug, PartialEq)]
     pub enum RelationshipDirection {
         Ingoing,
-        Outgoing
+        Outgoing,
     }
 
     #[derive(Debug, PartialEq)]
@@ -189,9 +189,10 @@ pub mod parse_match {
     }
 
     impl ReturnValue {
-        pub fn new (identifier_name: IdentifierName, property: Option<String>) -> Self {
+        pub fn new(identifier_name: IdentifierName, property: Option<String>) -> Self {
             Self {
-                identifier_name, property
+                identifier_name,
+                property,
             }
         }
     }

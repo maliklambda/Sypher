@@ -7,7 +7,9 @@ use crate::{
     },
     parser::{
         errors::{ParseErrorReason, ParseMatchError, ParseMatchErrorReason, ParseQueryError},
-        objects::parse_match::{IdentifierData, MatchObject, MatchQO, RelationshipDirection, ReturnValue},
+        objects::parse_match::{
+            IdentifierData, MatchObject, MatchQO, RelationshipDirection, ReturnValue,
+        },
         query::Query,
     },
     types::IdentifierName,
@@ -64,34 +66,50 @@ fn parse_pattern(
         println!("new node is: {:?}", new_node);
 
         match new_rel.data {
-            IdentifierData::Relationship { ref direction, ref mut start, ref mut end } => {
+            IdentifierData::Relationship {
+                ref direction,
+                ref mut start,
+                ref mut end,
+            } => {
                 if *direction == RelationshipDirection::Outgoing {
                     // adjust prev node: set prev_node.rel to new_rel -> consider in- vs. outgoing
                     let prev_node = match_objects.get_mut(&prev_node_name).unwrap();
-                    prev_node.data = IdentifierData::Node { outgoing: Some(new_rel.name.clone()), ingoing: None };
+                    prev_node.data = IdentifierData::Node {
+                        outgoing: Some(new_rel.name.clone()),
+                        ingoing: None,
+                    };
 
                     // adjust new rel: set (start, end) to (prev_node, new_node) -> consider in- vs. outgoing
                     *start = Some(prev_node_name.clone());
                     *end = Some(new_node.name.clone());
 
                     // adjust new node: set new_node.rel to new_rel
-                    new_node.data = IdentifierData::Node { outgoing: None, ingoing: Some(new_rel.name.clone()) }
-                } 
-                else {
+                    new_node.data = IdentifierData::Node {
+                        outgoing: None,
+                        ingoing: Some(new_rel.name.clone()),
+                    }
+                } else {
                     // adjust prev node: set prev_node.rel to new_rel -> consider in- vs. outgoing
                     let prev_node = match_objects.get_mut(&prev_node_name).unwrap();
-                    prev_node.data = IdentifierData::Node { outgoing: None, ingoing: Some(new_rel.name.clone()) };
+                    prev_node.data = IdentifierData::Node {
+                        outgoing: None,
+                        ingoing: Some(new_rel.name.clone()),
+                    };
 
                     // adjust new rel: set (start, end) to (prev_node, new_node) -> consider in- vs. outgoing
                     *start = Some(new_node.name.clone());
                     *end = Some(prev_node_name.clone());
 
                     // adjust new node: set new_node.rel to new_rel
-                    new_node.data = IdentifierData::Node { outgoing: Some(new_rel.name.clone()), ingoing: None }
+                    new_node.data = IdentifierData::Node {
+                        outgoing: Some(new_rel.name.clone()),
+                        ingoing: None,
+                    }
                 }
-            },
-            _ => panic!("Newly parsed relationship should have the type 'Relationship' and not 'Node'")
-
+            }
+            _ => panic!(
+                "Newly parsed relationship should have the type 'Relationship' and not 'Node'"
+            ),
         }
         match_objects.insert(new_rel.name.clone(), new_rel);
         prev_node_name = new_node.name.clone();
@@ -134,7 +152,6 @@ fn parse_relationship(query: &mut Query) -> Result<MatchObject, ParseMatchError>
     }
 }
 
-
 /*
 * Matching query looks something like this: "(n1:node)<-[r:TYPE]-(n2:node)"
 */
@@ -155,7 +172,6 @@ fn parse_ingoing_rel(pattern: &mut Query) -> Result<MatchObject, ParseMatchError
         },
     })
 }
-
 
 /*
 * Matching query looks something like this: "(n1:node)-[r:TYPE]->(n2:node)"
@@ -178,7 +194,10 @@ fn parse_outgoing_rel(pattern: &mut Query) -> Result<MatchObject, ParseMatchErro
     })
 }
 
-fn parse_name_type<'a>(query: &'a mut Query, end_str: &str) -> Result<(&'a str, &'a str), ParseMatchError> {
+fn parse_name_type<'a>(
+    query: &'a mut Query,
+    end_str: &str,
+) -> Result<(&'a str, &'a str), ParseMatchError> {
     let cur = query.current.to_string();
     let [id_name, type_name] = query
         .to_next_str(end_str)
@@ -190,42 +209,38 @@ fn parse_name_type<'a>(query: &'a mut Query, end_str: &str) -> Result<(&'a str, 
         .collect::<Vec<_>>()
         .as_slice()
         .try_into()
-        .map_err(|_| {
-            ParseMatchError::new(
-                ParseMatchErrorReason::ParseNameType,
-                cur,
-            )
-        })?;
+        .map_err(|_| ParseMatchError::new(ParseMatchErrorReason::ParseNameType, cur))?;
     Ok((id_name, type_name))
 }
 
-
-fn alphabetic_chars_only (input: &str) -> String {
-    input.chars().filter(|c| c.is_alphabetic()).collect::<String>()
+fn alphabetic_chars_only(input: &str) -> String {
+    input
+        .chars()
+        .filter(|c| c.is_alphabetic())
+        .collect::<String>()
 }
 
-
-
-
-fn parse_return_values (s: &str) -> Result<Vec<ReturnValue>, ParseMatchError> {
+fn parse_return_values(s: &str) -> Result<Vec<ReturnValue>, ParseMatchError> {
     let s = s.replace(SPACE, "");
     let mut values: Vec<ReturnValue> = vec![];
     for val in s.split(RETURN_VALUE_SEPARATOR) {
         println!("value: {:?}", val);
         let parts = val.split(DOT).collect::<Vec<&str>>();
         if parts.is_empty() {
-            return Err(ParseMatchError { reason: ParseMatchErrorReason::ParseReturnValues, pattern: val.to_string() })
+            return Err(ParseMatchError {
+                reason: ParseMatchErrorReason::ParseReturnValues,
+                pattern: val.to_string(),
+            });
         }
         let id_name = parts[0].to_string();
         let prop_name: Option<String> = {
-            if parts.len() == 2 { Some(parts[1].to_string()) }
-            else { None }
+            if parts.len() == 2 {
+                Some(parts[1].to_string())
+            } else {
+                None
+            }
         };
         values.push(ReturnValue::new(id_name, prop_name))
     }
     Ok(values)
 }
-
-
-
-
