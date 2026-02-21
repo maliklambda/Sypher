@@ -1,6 +1,10 @@
 use crate::constants::{
     command_kws::{ADD_STR, REMOVE_STR},
-    keywords::{CASCADE_STR, NODE_STR, RELATIONSHIP_STR, SAFE_STR, SET_STR},
+    keywords::{
+        NODE_STR, RELATIONSHIP_STR,
+        remove::{CASCADE_STR, SAFE_STR},
+        update::SET_STR,
+    },
 };
 use std::collections::HashMap;
 
@@ -12,6 +16,7 @@ pub enum QueryObject {
     REMOVE(RemoveQO),
     GET(GetQO),
     FIND(FindQO),
+    MATCH(MatchQO),
     UPDATE(UpdateQO),
 }
 
@@ -92,6 +97,9 @@ pub enum FindQO {
 }
 
 #[derive(Debug, PartialEq)]
+pub enum MatchQO {}
+
+#[derive(Debug, PartialEq)]
 pub enum UpdateQO {
     Node(UpdateNodeQO),
     Relationship(UpdateRelationshipQO),
@@ -164,4 +172,9 @@ impl ObjectKind {
         let (_, kind) = Self::STRINGS.iter().find(|(value, _)| value == &s)?;
         Some(kind.clone())
     }
+}
+
+pub struct Subquery {
+    query: String,
+    priority: u8, // describes the depth in case of recursive subqueries
 }

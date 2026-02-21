@@ -1,8 +1,8 @@
 use crate::{
     constants::{
-        command_kws::UPDATE_STR,
-        keywords::{ADD_STR, NODE_STR, VALUE_STR},
-        special_chars::{ASSIGNMENT, COMMA, DOUBLE_QUOTE, SINGLE_QUOTE, SPACE},
+        command_kws::{ADD_STR, UPDATE_STR},
+        keywords::{NODE_STR, update::VALUE_STR},
+        special_chars::{ASSIGNMENT, UPDATE_OPERATION_SEPARATOR},
     },
     parser::{
         errors::{ParseErrorReason, ParseQueryError},
@@ -11,7 +11,7 @@ use crate::{
             UpdateRelationshipQO,
         },
         query::Query,
-        utils::{get_object_kind, get_value},
+        utils::{get_object_kind, kv_get_value},
     },
     types::NodeID,
 };
@@ -46,7 +46,7 @@ fn parse_update_node(query: &mut Query) -> Result<UpdateNodeQO, ParseQueryError>
     })
 }
 
-fn parse_update_relationship(query: &mut Query) -> Result<UpdateRelationshipQO, ParseQueryError> {
+fn parse_update_relationship(_query: &mut Query) -> Result<UpdateRelationshipQO, ParseQueryError> {
     todo!("parse update relationship");
 }
 
@@ -54,7 +54,7 @@ fn parse_update_operations(query: &mut Query) -> Result<Vec<UpdateOperation>, Pa
     let mut update_operations: Vec<UpdateOperation> = vec![];
     while query.current.len() >= 2 {
         update_operations.push(parse_single_update_operation(query)?);
-        query.trim_left_char(COMMA);
+        query.trim_left_char(UPDATE_OPERATION_SEPARATOR);
     }
     Ok(update_operations)
 }
@@ -96,7 +96,7 @@ fn parse_update_operation_add(query: &mut Query) -> Result<UpdateOperation, Pars
             expected: VALUE_STR.to_string(),
         }));
     }
-    let value = if let Some(re) = query.to_next_char(COMMA) {
+    let value = if let Some(re) = query.to_next_char(UPDATE_OPERATION_SEPARATOR) {
         re
     } else {
         query.to_end()
@@ -111,13 +111,13 @@ fn parse_update_operation_set(query: &mut Query) -> Result<UpdateOperation, Pars
         .ok_or(ParseQueryError::new(ParseErrorReason::MissingAssignment))?
         .to_string();
     query.trim_left();
-    let value = get_value(query, &property)
+    let value = kv_get_value(query, &property)
         .map_err(|err| ParseQueryError::new(ParseErrorReason::ParseKeyValuePairs(err)))?;
     Ok(UpdateOperation::Set { property, value })
 }
 
 fn parse_update_operation_remove(query: &mut Query) -> UpdateOperation {
-    let remove_property = if let Some(re) = query.to_next_char(COMMA) {
+    let remove_property = if let Some(re) = query.to_next_char(UPDATE_OPERATION_SEPARATOR) {
         re
     } else {
         query.to_end()

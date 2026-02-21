@@ -1,10 +1,12 @@
-use crate::constants::command_kws::REMOVE_STR;
-use crate::constants::keywords::MODE_STR;
-use crate::parser::errors::ParseErrorReason;
-
-use super::super::errors::ParseQueryError;
-use super::super::objects::RemoveQO;
-use super::super::{objects::*, query::Query, utils::*};
+use crate::{
+    constants::{command_kws::REMOVE_STR, keywords::remove::MODE_STR},
+    parser::{
+        errors::{ParseErrorReason, ParseQueryError},
+        objects::{ObjectKind, RemoveMode, RemoveNodeQO, RemoveQO, RemoveRelationshipQO},
+        query::Query,
+        utils::get_object_kind,
+    },
+};
 
 pub fn parse_remove(query: &mut Query) -> Result<RemoveQO, ParseQueryError> {
     println!("Parsing remove: {query}");
@@ -12,7 +14,7 @@ pub fn parse_remove(query: &mut Query) -> Result<RemoveQO, ParseQueryError> {
         match get_object_kind(query)? {
             ObjectKind::Node => RemoveQO::Node(parse_remove_node(query)?),
             ObjectKind::Relationship => RemoveQO::Relationship(parse_remove_relationship(query)?),
-            _ => todo!("Parse remove of other objects"),
+            // _ => todo!("Parse remove of other objects"),
         }
     };
     Ok(remove_query_object)

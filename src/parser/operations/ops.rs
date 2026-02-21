@@ -6,6 +6,7 @@ pub enum Operation {
     Remove,
     Get,
     Find,
+    Match,
     Update,
 }
 
@@ -15,6 +16,7 @@ impl Operation {
         (REMOVE_STR, Operation::Remove),
         (GET_STR, Operation::Get),
         (FIND_STR, Operation::Find),
+        (MATCH_STR, Operation::Match),
         (UPDATE_STR, Operation::Update),
     ];
 

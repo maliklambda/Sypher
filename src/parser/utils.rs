@@ -1,12 +1,23 @@
 use std::collections::HashMap;
 
-use crate::constants::keywords::*;
-use crate::constants::limits::MAX_IDENTIFIER_LEN;
-use crate::constants::special_chars::*;
-use crate::parser::errors::*;
-use crate::parser::objects::*;
-use crate::parser::operations::ops::Operation;
-use crate::parser::query::Query;
+use crate::{
+    constants::{
+        keywords::{
+            PROPERTIES_STR, TYPE_STR,
+            add::{FROM_STR, TO_STR},
+        },
+        limits::MAX_IDENTIFIER_LEN,
+        special_chars::{
+            ASSIGNMENT, DOUBLE_QUOTE, KV_PAIR_SEPARATOR, SINGLE_QUOTE, SPACE, SPACE_LEN,
+        },
+    },
+    parser::{
+        errors::{ParseErrorReason, ParseKeyValueError, ParseKeyValueErrorReason, ParseQueryError},
+        objects::{NodeTuple, ObjectKind},
+        operations::ops::Operation,
+        query::Query,
+    },
+};
 
 pub fn get_identifier(query: &mut Query) -> Result<String, ParseQueryError> {
     let identifier = query
@@ -69,19 +80,19 @@ pub fn parse_kv_pair(
     query: &mut Query,
     properties: &mut HashMap<String, String>,
 ) -> Result<(), ParseKeyValueError> {
-    let key = get_key(query)?;
+    let key = kv_get_key(query)?;
     query.trim_left();
-    let value_str = get_value(query, &key)?;
+    let value_str = kv_get_value(query, &key)?;
 
     println!("key = {key}, value_str = '{value_str}'");
     properties.insert(key, value_str.to_string());
-    query.trim_left_char(COMMA);
+    query.trim_left_char(KV_PAIR_SEPARATOR);
 
     println!("Remaining query: {:?}", query);
     Ok(())
 }
 
-pub fn get_key(query: &mut Query) -> Result<String, ParseKeyValueError> {
+pub fn kv_get_key(query: &mut Query) -> Result<String, ParseKeyValueError> {
     let key = query
         .to_next_char(ASSIGNMENT)
         .ok_or(ParseKeyValueError::new(
@@ -91,7 +102,7 @@ pub fn get_key(query: &mut Query) -> Result<String, ParseKeyValueError> {
     Ok(key.to_string())
 }
 
-pub fn get_value(query: &mut Query, key: &str) -> Result<String, ParseKeyValueError> {
+pub fn kv_get_value(query: &mut Query, key: &str) -> Result<String, ParseKeyValueError> {
     assert!(!query.current.is_empty());
     match query.current.chars().next().unwrap() {
         DOUBLE_QUOTE => {
@@ -117,7 +128,7 @@ pub fn get_value(query: &mut Query, key: &str) -> Result<String, ParseKeyValueEr
         _ => {
             println!("Value other than string");
             println!("query: {query}");
-            if let Some(value) = query.to_next_char(COMMA) {
+            if let Some(value) = query.to_next_char(KV_PAIR_SEPARATOR) {
                 Ok(value.to_string())
             } else if query.current.find(ASSIGNMENT).is_none() {
                 Ok(query.to_end().to_string())
