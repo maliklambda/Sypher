@@ -174,7 +174,7 @@ pub struct ParseMatchError {
 impl std::error::Error for ParseMatchError {}
 impl std::fmt::Display for ParseMatchError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self.reason {
+        match &self.reason {
             ParseMatchErrorReason::StartWithoutNode => write!(
                 f,
                 "pattern '{}' does not start with a Node: '(name:type)'",
@@ -195,6 +195,11 @@ impl std::fmt::Display for ParseMatchError {
                 "Parsing return values failed for pattern: {}",
                 self.pattern
             ),
+            ParseMatchErrorReason::UnknownIdentifierInReturnValues { unknown } => write!(
+                f,
+                "Unknown identifier '{unknown}' in return values for pattern: {}",
+                self.pattern
+            ),
         }
     }
 }
@@ -211,4 +216,5 @@ pub enum ParseMatchErrorReason {
     ParseNameType,
     UnclosedRelationship,
     ParseReturnValues,
+    UnknownIdentifierInReturnValues { unknown: String },
 }

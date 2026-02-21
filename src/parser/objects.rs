@@ -1,8 +1,7 @@
 use crate::{
     constants::keywords::{NODE_STR, RELATIONSHIP_STR},
     parser::objects::{
-        add::AddQO, get::GetQO, parse_match::MatchQO, remove::RemoveQO,
-        update::UpdateQO,
+        add::AddQO, get::GetQO, parse_match::MatchQO, remove::RemoveQO, update::UpdateQO,
     },
 };
 
@@ -138,7 +137,7 @@ pub mod parse_match {
     #[derive(Debug, PartialEq)]
     pub struct MatchQO {
         pub match_objects: HashMap<IdentifierName, MatchObject>,
-        pub filters: HashMap<IdentifierName, FilterCondition>,
+        pub filters: Vec<FilterCondition>,
         pub return_values: Vec<ReturnValue>,
     }
 
@@ -169,12 +168,23 @@ pub mod parse_match {
     }
 
     #[derive(Debug, PartialEq)]
-    pub struct FilterCondition {}
+    pub struct FilterCondition {
+        left_side: String,
+        comparison_operator: ComparisonOperator,
+        right_side: String,
+    }
+
+    #[derive(Debug, PartialEq)]
+    pub enum ComparisonOperator {
+        Equal,
+        GreaterThan,
+        LessThan,
+    }
 
     #[derive(Debug, PartialEq)]
     pub struct ReturnValue {
-        identifier_name: IdentifierName,
-        property: Option<String>,
+        pub identifier_name: IdentifierName,
+        pub property: Option<String>,
     }
 
     impl ReturnValue {

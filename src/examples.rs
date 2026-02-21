@@ -6,7 +6,7 @@
 */
 
 pub const MATCH_QUERY_INGOING: &str =
-    "MATCH (f:Food) <-[r:LIKES]- (person:Person) WHERE person.name = 'Edos' RETURN food.name";
+    "MATCH (food:Food) <-[r:LIKES]- (person:Person) WHERE person.name = 'Edos' RETURN person.age, foods.name";
 pub const MATCH_QUERY_OUTGOING: &str =
     "MATCH (person:Person) -[r:LIKES]-> (food:Food) WHERE person.name = 'Edos' RETURN food.name";
 pub const SUBQ_QUERY: &str = "GET NODE SUBQ[UPDATE NODE SET name = 'Malik'] hello FROM SOMEWHERE";

@@ -8,7 +8,8 @@ use crate::{
     parser::{
         errors::{ParseErrorReason, ParseMatchError, ParseMatchErrorReason, ParseQueryError},
         objects::parse_match::{
-            IdentifierData, MatchObject, MatchQO, RelationshipDirection, ReturnValue,
+            FilterCondition, IdentifierData, MatchObject, MatchQO, RelationshipDirection,
+            ReturnValue,
         },
         query::Query,
     },
@@ -17,29 +18,33 @@ use crate::{
 
 pub fn parse_match(query: &mut Query) -> Result<MatchQO, ParseQueryError> {
     println!("query: {query}");
+    // parse pattern
     let pattern = query.to_next_str(WHERE_STR).ok_or(ParseQueryError::new(
         ParseErrorReason::MissingKeyword {
             expected: WHERE_STR.to_string(),
         },
     ))?;
     println!("pattern: {pattern}");
-    // parse pattern
     let match_objects = parse_pattern(pattern)?;
     println!("Parsed match objects: {:?}", match_objects);
 
+    // parse conditions
     let conditions_str = query.to_next_str(RETURN_STR).ok_or(ParseQueryError::new(
         ParseErrorReason::MissingKeyword {
             expected: RETURN_STR.to_string(),
         },
     ))?;
     println!("conditions: {conditions_str}");
-    // parse conditions
-    let filters = HashMap::new();
+    let filters = parse_conditions(conditions_str)?;
 
+    // parse return values
     let return_values_str = query.to_end();
     println!("return values: {return_values_str}");
-    // parse return values
     let return_values = parse_return_values(return_values_str)?;
+    validate_return_values(&return_values, &match_objects).map_err(|mut err| {
+        err.pattern = return_values_str.to_string();
+        ParseQueryError::new(ParseErrorReason::ParseMatchError(err))
+    })?;
 
     Ok(MatchQO {
         match_objects,
@@ -243,4 +248,27 @@ fn parse_return_values(s: &str) -> Result<Vec<ReturnValue>, ParseMatchError> {
         values.push(ReturnValue::new(id_name, prop_name))
     }
     Ok(values)
+}
+
+fn parse_conditions(conditions_str: &str) -> Result<Vec<FilterCondition>, ParseMatchError> {
+    // todo!("parse conditions");
+    Ok(vec![])
+}
+
+fn validate_return_values(
+    return_values: &Vec<ReturnValue>,
+    match_objects: &HashMap<IdentifierName, MatchObject>,
+) -> Result<(), ParseMatchError> {
+    println!("match objects: {:?}", match_objects);
+    for val in return_values {
+        if !match_objects.contains_key(&val.identifier_name) {
+            return Err(ParseMatchError::new(
+                ParseMatchErrorReason::UnknownIdentifierInReturnValues {
+                    unknown: val.identifier_name.clone(),
+                },
+                "".to_string(),
+            ));
+        }
+    }
+    Ok(())
 }
