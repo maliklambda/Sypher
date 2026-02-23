@@ -34,18 +34,17 @@ pub fn get_identifier<'a>(query: &'a mut Query) -> Result<String, ParseErrorReas
 
 pub fn get_type_name<'a>(query: &'a mut Query) -> Result<String, ParseErrorReason<'a>> {
     println!("query: {query}");
-    let expected_type = query.to_next_space().ok_or(
-        ParseErrorReason::IdentifierMissingType,
-    )?;
+    let expected_type = query
+        .to_next_space()
+        .ok_or(ParseErrorReason::IdentifierMissingType)?;
     if expected_type != TYPE_STR {
         return Err(ParseErrorReason::IdentifierMissingType);
     }
-    let type_name =
-        query
-            .to_next_space()
-            .ok_or(ParseErrorReason::MissingValue {
-                for_keyword: TYPE_STR.to_string(),
-            })?;
+    let type_name = query
+        .to_next_space()
+        .ok_or(ParseErrorReason::MissingValue {
+            for_keyword: TYPE_STR.to_string(),
+        })?;
     Ok(type_name.to_string())
 }
 

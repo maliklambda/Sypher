@@ -1,13 +1,18 @@
-use std::collections::HashMap;
-
 use crate::{
     constants::{
         keywords::supqueries::SUBQ_PATTERN,
         special_chars::{DOUBLE_QUOTE, SINGLE_QUOTE, subqueries::SUBQ_END},
     },
-    parser::{errors::{ParseSubqueryError, ParseSubqueryErrorReason}, objects::Subquery, subqueries::tree::SubqueryIndexTree},
+    parser::{
+        errors::{ParseSubqueryError, ParseSubqueryErrorReason},
+        subqueries::tree::{QueryTree, SubqueryPayload},
+    },
 };
 
+/*
+* This mode is used only during the iteration of subquery-parsing.
+* It Shows which state the parsed query is currently in.
+*/
 enum Mode {
     Normal,
     StringDQ,
@@ -15,13 +20,17 @@ enum Mode {
     Ended(usize),
 }
 
-pub fn build_subquery_index_tree(query_str: &str) -> Result<SubqueryIndexTree, ParseSubqueryError> {
+/*
+* Returns SubqueryIndexTree in unparsed state
+* -> tree.indices_map holds only the end indices
+*/
+pub fn build_uparsed_query_tree(query_str: &str) -> Result<QueryTree, ParseSubqueryError> {
     let mut subquery_end: Option<usize> = None;
     let mut mode = Mode::Normal;
     let chars = &query_str.chars();
     let mut level = 0;
-    let mut tree = SubqueryIndexTree::new(0);
-    tree.indices_map.insert(0, Some(query_str.len()));
+    let mut tree = QueryTree::new(0);
+    tree.indices_map.insert(0, Some(SubqueryPayload::new(query_str.len())));
     let mut stack: Vec<usize> = vec![];
 
     for (idx, cur) in chars.clone().enumerate() {
@@ -38,7 +47,7 @@ pub fn build_subquery_index_tree(query_str: &str) -> Result<SubqueryIndexTree, P
                         let rm_val = stack.pop().unwrap();
                         println!("Got query [{rm_val}-{idx}]");
                         let v = tree.indices_map.get_mut(&rm_val).unwrap();
-                        *v = Some(idx);
+                        *v = Some(SubqueryPayload::new(idx));
                         level -= 1;
                         println!("Decrementing level from {} to {}", level + 1, level);
                     }
@@ -71,18 +80,20 @@ pub fn build_subquery_index_tree(query_str: &str) -> Result<SubqueryIndexTree, P
             }
         }
     }
-
-    // let map = tree.indices_map.clone();
-    // let a = tree
-    //     .map(|node| map.get_key_value(&node.borrow().value))
-    //     .collect::<Vec<_>>();
-    // println!("Hello world: {:?}", a);
+    tree.clear_current_nodes();
+    tree.clear_queue();
+    println!("Tree == {:?}", tree);
     if level != 0 {
-        println!("Ended level != 0");
-        return Err(ParseSubqueryError::new(query_str, ParseSubqueryErrorReason::UnexpectedEnd))
+        return Err(ParseSubqueryError::new(
+            query_str,
+            ParseSubqueryErrorReason::UnexpectedEnd,
+        ));
     }
     match subquery_end {
         Some(_) => Ok(tree),
-        None => Err(ParseSubqueryError::new(query_str, ParseSubqueryErrorReason::UnexpectedEnd)),
+        None => Err(ParseSubqueryError::new(
+            query_str,
+            ParseSubqueryErrorReason::UnexpectedEnd,
+        )),
     }
 }

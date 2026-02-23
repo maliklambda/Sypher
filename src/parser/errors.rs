@@ -1,6 +1,5 @@
 use std::num::ParseIntError;
 
-
 #[derive(Debug, Clone)]
 pub struct ParseQueryError<'a> {
     pub reason: ParseErrorReason<'a>,
@@ -234,7 +233,7 @@ pub struct ParseSubqueryError<'a> {
     reason: ParseSubqueryErrorReason,
 }
 
-impl<'a> ParseSubqueryError <'a> {
+impl<'a> ParseSubqueryError<'a> {
     pub fn new(subquery: &'a str, reason: ParseSubqueryErrorReason) -> Self {
         ParseSubqueryError { subquery, reason }
     }
@@ -243,8 +242,12 @@ impl<'a> std::error::Error for ParseSubqueryError<'a> {}
 impl<'a> std::fmt::Display for ParseSubqueryError<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.reason {
-            ParseSubqueryErrorReason::UnclosedSubquery => write!(f, "Unclosed Subquery '{}'", self.subquery),
-            ParseSubqueryErrorReason::UnexpectedEnd => write!(f, "Unexpected end in '{}'", self.subquery),
+            ParseSubqueryErrorReason::UnclosedSubquery => {
+                write!(f, "Unclosed Subquery '{}'", self.subquery)
+            }
+            ParseSubqueryErrorReason::UnexpectedEnd => {
+                write!(f, "Unexpected end in '{}'", self.subquery)
+            }
         }
     }
 }
