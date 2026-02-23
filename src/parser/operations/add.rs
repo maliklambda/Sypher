@@ -1,5 +1,5 @@
 use crate::parser::{
-    errors::ParseQueryError,
+    errors::{ParseErrorReason, ParseQueryError, ParseSubqueryErrorReason},
     objects::{
         NodeTuple, ObjectKind,
         add::{AddNodeQO, AddQO, AddRelationshipQO},
@@ -11,7 +11,7 @@ use crate::parser::{
     },
 };
 
-pub fn parse_add(query: &mut Query) -> Result<AddQO, ParseQueryError> {
+pub fn parse_add<'a>(query: &'a mut Query) -> Result<AddQO, ParseQueryError<'a>> {
     println!("Parsing add: {query}");
     let add_query_object = {
         match get_object_kind(query)? {
@@ -22,26 +22,51 @@ pub fn parse_add(query: &mut Query) -> Result<AddQO, ParseQueryError> {
     Ok(add_query_object)
 }
 
-fn parse_add_node(query: &mut Query) -> Result<AddNodeQO, ParseQueryError> {
+fn parse_add_node<'a>(query: &'a mut Query) -> Result<AddNodeQO, ParseQueryError<'a>> {
     println!("parsing add node: {query}");
-    let identifier = get_identifier(query)?;
+    let identifier = get_identifier(query).map_err(|err|
+        match err {
+            ParseErrorReason::MissingIdentifier => ParseQueryError::new(ParseErrorReason::MissingIdentifier),
+            ParseErrorReason::TooLongIdentifier { got, max_len } => ParseQueryError::new(ParseErrorReason::TooLongIdentifier { got, max_len }),
+            _ => todo!("Make get_identifier error pretty"),
+        }
+    )?;
     println!("identifier: {identifier}");
-    let type_name = get_type_name(query)?;
+
+    let type_name = get_type_name(query).map_err(|err|
+        match err {
+            ParseErrorReason::IdentifierMissingType => ParseQueryError::new(ParseErrorReason::MissingIdentifier),
+            ParseErrorReason::MissingValue { for_keyword } => ParseQueryError::new(ParseErrorReason::MissingValue { for_keyword }),
+            _ => todo!("Make get_type_name error pretty"),
+        }
+    )?;
     println!("typename: {type_name}");
-    // println!("query after type name: {query}");
+
     let properties = parse_properties(query)?;
     Ok(AddNodeQO {
-        identifier: identifier.to_string(),
-        type_name: type_name.to_string(),
+        identifier,
+        type_name,
         properties,
     })
 }
 
-fn parse_add_relationship(query: &mut Query) -> Result<AddRelationshipQO, ParseQueryError> {
+fn parse_add_relationship<'a>(query: &'a mut Query) -> Result<AddRelationshipQO, ParseQueryError<'a>> {
     println!("parsing add relationship: {query}");
-    let identifier = get_identifier(query)?;
+    let identifier = get_identifier(query).map_err(|err|
+        match err {
+            ParseErrorReason::MissingIdentifier => ParseQueryError::new(ParseErrorReason::MissingIdentifier),
+            ParseErrorReason::TooLongIdentifier { got, max_len } => ParseQueryError::new(ParseErrorReason::TooLongIdentifier { got, max_len }),
+            _ => todo!("Make get_identifier error pretty"),
+        }
+    )?;
     println!("identifier: {identifier}");
-    let type_name = get_type_name(query)?;
+    let type_name = get_type_name(query).map_err(|err|
+        match err {
+            ParseErrorReason::IdentifierMissingType => ParseQueryError::new(ParseErrorReason::MissingIdentifier),
+            ParseErrorReason::MissingValue { for_keyword } => ParseQueryError::new(ParseErrorReason::MissingValue { for_keyword }),
+            _ => todo!("Make get_type_name error pretty"),
+        }
+    )?;
     println!("typename: {type_name}");
     println!("query after type name: {query}");
     let NodeTuple { from, to } = get_nodes_for_relationship(query)?;
@@ -54,3 +79,5 @@ fn parse_add_relationship(query: &mut Query) -> Result<AddRelationshipQO, ParseQ
         properties,
     })
 }
+
+

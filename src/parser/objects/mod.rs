@@ -1,3 +1,5 @@
+pub mod query_tree;
+
 use crate::{
     constants::keywords::{NODE_STR, RELATIONSHIP_STR},
     parser::objects::{
@@ -5,7 +7,7 @@ use crate::{
     },
 };
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum QueryObject {
     Add(AddQO),
     Remove(RemoveQO),
@@ -49,7 +51,7 @@ pub mod add {
 
     use crate::types::NodeID;
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub enum AddQO {
         Node(AddNodeQO),
         Relationship(AddRelationshipQO),
@@ -58,14 +60,14 @@ pub mod add {
         Constraint(),
     }
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub struct AddNodeQO {
         pub identifier: String,
         pub type_name: String,
         pub properties: HashMap<String, String>,
     }
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub struct AddRelationshipQO {
         pub identifier: String,
         pub type_name: String,
@@ -81,7 +83,7 @@ pub mod remove {
         types::{NodeID, RelationshipID},
     };
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub enum RemoveQO {
         Node(RemoveNodeQO),
         Relationship(RemoveRelationshipQO),
@@ -89,7 +91,7 @@ pub mod remove {
         Constraint(),
     }
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub struct RemoveNodeQO {
         pub id: NodeID,
         pub mode: RemoveMode,
@@ -113,7 +115,7 @@ pub mod remove {
         }
     }
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub struct RemoveRelationshipQO {
         pub id: RelationshipID,
     }
@@ -122,7 +124,7 @@ pub mod remove {
 pub mod get {
     use crate::types::{NodeID, RelationshipID};
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub enum GetQO {
         Node(NodeID),
         Relationship(RelationshipID),
@@ -134,21 +136,21 @@ pub mod parse_match {
 
     use crate::types::IdentifierName;
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub struct MatchQO {
         pub match_objects: HashMap<IdentifierName, MatchObject>,
         pub filters: Vec<FilterCondition>,
         pub return_values: Vec<ReturnValue>,
     }
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub struct MatchObject {
         pub name: IdentifierName,
         pub object_type: String,
         pub data: IdentifierData,
     }
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub enum IdentifierData {
         Node {
             outgoing: Option<IdentifierName>,
@@ -161,27 +163,27 @@ pub mod parse_match {
         },
     }
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub enum RelationshipDirection {
         Ingoing,
         Outgoing,
     }
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub struct FilterCondition {
         left_side: String,
         comparison_operator: ComparisonOperator,
         right_side: String,
     }
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub enum ComparisonOperator {
         Equal,
         GreaterThan,
         LessThan,
     }
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub struct ReturnValue {
         pub identifier_name: IdentifierName,
         pub property: Option<String>,
@@ -206,19 +208,19 @@ pub mod update {
         types::NodeID,
     };
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub enum UpdateQO {
         Node(UpdateNodeQO),
         Relationship(UpdateRelationshipQO),
     }
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub struct UpdateNodeQO {
         pub id: NodeID,
         pub operations: Vec<UpdateOperation>,
     }
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub enum UpdateOperation {
         Set { property: String, value: String },
         Remove { property: String },
@@ -245,14 +247,26 @@ pub mod update {
         }
     }
 
-    #[derive(Debug, PartialEq)]
+    #[derive(Debug, PartialEq, Clone)]
     pub struct UpdateRelationshipQO {
         pub id: NodeID,
         pub operations: Vec<UpdateOperation>,
     }
 }
 
-pub struct Subquery {
-    query: String,
-    priority: u8, // describes the depth in case of recursive subqueries
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Subquery<'a> {
+    pub query: &'a str,
+}
+
+impl<'a> Subquery<'a> {
+    pub fn new(s: &'a str) -> Self {
+        Subquery { query: s }
+    }
+}
+
+impl<'a> std::fmt::Display for Subquery<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "SUBQUERY: '{}'", self.query)
+    }
 }

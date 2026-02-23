@@ -1,36 +1,43 @@
 use std::num::ParseIntError;
 
-#[derive(Debug)]
-pub struct ParseQueryError {
-    pub reason: ParseErrorReason,
+
+#[derive(Debug, Clone)]
+pub struct ParseQueryError<'a> {
+    pub reason: ParseErrorReason<'a>,
 }
 
-impl ParseQueryError {
+impl<'a> ParseQueryError<'a> {
     pub fn new(reason: ParseErrorReason) -> ParseQueryError {
         ParseQueryError { reason }
     }
 
-    pub fn default() -> ParseQueryError {
+    pub fn default() -> ParseQueryError<'a> {
         ParseQueryError {
             reason: ParseErrorReason::Default,
         }
     }
 }
 
-impl From<ParseKeyValueError> for ParseQueryError {
+impl<'a> From<ParseKeyValueError> for ParseQueryError<'a> {
     fn from(value: ParseKeyValueError) -> Self {
         ParseQueryError::new(ParseErrorReason::ParseKeyValuePairs(value))
     }
 }
 
-impl From<ParseMatchError> for ParseQueryError {
+impl<'a> From<ParseMatchError> for ParseQueryError<'a> {
     fn from(value: ParseMatchError) -> Self {
         ParseQueryError::new(ParseErrorReason::ParseMatchError(value))
     }
 }
 
-impl std::error::Error for ParseQueryError {}
-impl std::fmt::Display for ParseQueryError {
+impl<'a> From<ParseSubqueryError<'a>> for ParseQueryError<'a> {
+    fn from(value: ParseSubqueryError<'a>) -> Self {
+        ParseQueryError::new(ParseErrorReason::ParseSubquery(value))
+    }
+}
+
+impl<'a> std::error::Error for ParseQueryError<'a> {}
+impl<'a> std::fmt::Display for ParseQueryError<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Parsing query failed because of {}", self.reason,)
     }
@@ -38,8 +45,8 @@ impl std::fmt::Display for ParseQueryError {
 
 pub type ErrorSection = (usize, usize);
 
-#[derive(Debug, PartialEq)]
-pub enum ParseErrorReason {
+#[derive(Debug, PartialEq, Clone)]
+pub enum ParseErrorReason<'a> {
     // Invalid
     InvalidKeyword(String),
     InvalidObjectKind,
@@ -57,6 +64,7 @@ pub enum ParseErrorReason {
     ParseID(ParseIntError),
     ParseKeyValuePairs(ParseKeyValueError),
     ParseMatchError(ParseMatchError),
+    ParseSubquery(ParseSubqueryError<'a>),
 
     // Other
     UnknownRemoveMode,
@@ -65,7 +73,7 @@ pub enum ParseErrorReason {
     Default,
 }
 
-impl std::fmt::Display for ParseErrorReason {
+impl<'a> std::fmt::Display for ParseErrorReason<'a> {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = {
             match self {
@@ -98,6 +106,7 @@ impl std::fmt::Display for ParseErrorReason {
                 }
                 ParseErrorReason::ParseID(err) => &format!("Parsing node failed: {err}"),
                 ParseErrorReason::ParseMatchError(err) => &format!("Parsing match failed: {err}"),
+                ParseErrorReason::ParseSubquery(err) => &format!("Parsing subquery failed: {err}"),
 
                 // Other
                 ParseErrorReason::UnknownRemoveMode => {
@@ -114,7 +123,7 @@ impl std::fmt::Display for ParseErrorReason {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ParseKeyValueError {
     pub reason: ParseKeyValueErrorReason,
 }
@@ -154,7 +163,7 @@ impl ParseKeyValueError {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ParseKeyValueErrorReason {
     MissingSpace,
     MissingAssignment,
@@ -165,7 +174,7 @@ pub enum ParseKeyValueErrorReason {
     Default,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub struct ParseMatchError {
     pub reason: ParseMatchErrorReason,
     pub pattern: String,
@@ -210,11 +219,38 @@ impl ParseMatchError {
     }
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, PartialEq, Clone)]
 pub enum ParseMatchErrorReason {
     StartWithoutNode,
     ParseNameType,
     UnclosedRelationship,
     ParseReturnValues,
     UnknownIdentifierInReturnValues { unknown: String },
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct ParseSubqueryError<'a> {
+    subquery: &'a str,
+    reason: ParseSubqueryErrorReason,
+}
+
+impl<'a> ParseSubqueryError <'a> {
+    pub fn new(subquery: &'a str, reason: ParseSubqueryErrorReason) -> Self {
+        ParseSubqueryError { subquery, reason }
+    }
+}
+impl<'a> std::error::Error for ParseSubqueryError<'a> {}
+impl<'a> std::fmt::Display for ParseSubqueryError<'a> {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.reason {
+            ParseSubqueryErrorReason::UnclosedSubquery => write!(f, "Unclosed Subquery '{}'", self.subquery),
+            ParseSubqueryErrorReason::UnexpectedEnd => write!(f, "Unexpected end in '{}'", self.subquery),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum ParseSubqueryErrorReason {
+    UnexpectedEnd,
+    UnclosedSubquery,
 }

@@ -16,7 +16,7 @@ use crate::{
     types::IdentifierName,
 };
 
-pub fn parse_match(query: &mut Query) -> Result<MatchQO, ParseQueryError> {
+pub fn parse_match<'a>(query: &mut Query) -> Result<MatchQO, ParseQueryError<'a>> {
     println!("query: {query}");
     // parse pattern
     let pattern = query.to_next_str(WHERE_STR).ok_or(ParseQueryError::new(
@@ -250,7 +250,7 @@ fn parse_return_values(s: &str) -> Result<Vec<ReturnValue>, ParseMatchError> {
     Ok(values)
 }
 
-fn parse_conditions(conditions_str: &str) -> Result<Vec<FilterCondition>, ParseMatchError> {
+fn parse_conditions<'a>(_conditions_str: &str) -> Result<Vec<FilterCondition>, ParseMatchError> {
     // todo!("parse conditions");
     Ok(vec![])
 }

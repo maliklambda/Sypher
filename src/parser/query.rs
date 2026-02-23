@@ -1,4 +1,4 @@
-use crate::constants::special_chars::{SPACE, SPACE_LEN};
+use crate::constants::special_chars::{QUERY_SEPARATOR, SPACE};
 
 #[derive(Debug, Clone, Copy)]
 pub struct Query<'a> {
@@ -14,6 +14,14 @@ impl Query<'_> {
             current: s,
             offset: 0,
         }
+    }
+
+    pub fn prepare(&mut self) {
+        self.trim_left();
+        self.current = self
+            .current
+            .strip_suffix(QUERY_SEPARATOR)
+            .unwrap_or(self.current);
     }
 
     pub fn trim_left(&mut self) {

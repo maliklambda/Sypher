@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, string::ParseError};
 
 use crate::{
     constants::{
@@ -19,39 +19,39 @@ use crate::{
     },
 };
 
-pub fn get_identifier(query: &mut Query) -> Result<String, ParseQueryError> {
+pub fn get_identifier<'a>(query: &'a mut Query) -> Result<String, ParseErrorReason<'a>> {
     let identifier = query
         .to_next_space()
-        .ok_or(ParseQueryError::new(ParseErrorReason::MissingIdentifier))?;
+        .ok_or(ParseErrorReason::MissingIdentifier)?;
     if identifier.len() > MAX_IDENTIFIER_LEN {
-        return Err(ParseQueryError::new(ParseErrorReason::TooLongIdentifier {
+        return Err(ParseErrorReason::TooLongIdentifier {
             got: identifier.len(),
             max_len: MAX_IDENTIFIER_LEN,
-        }));
+        });
     }
     Ok(identifier.to_string())
 }
 
-pub fn get_type_name(query: &mut Query) -> Result<String, ParseQueryError> {
+pub fn get_type_name<'a>(query: &'a mut Query) -> Result<String, ParseErrorReason<'a>> {
     println!("query: {query}");
-    let expected_type = query.to_next_space().ok_or(ParseQueryError::new(
+    let expected_type = query.to_next_space().ok_or(
         ParseErrorReason::IdentifierMissingType,
-    ))?;
+    )?;
     if expected_type != TYPE_STR {
-        return Err(ParseQueryError::new(
-            ParseErrorReason::IdentifierMissingType,
-        ));
+        return Err(ParseErrorReason::IdentifierMissingType);
     }
     let type_name =
         query
             .to_next_space()
-            .ok_or(ParseQueryError::new(ParseErrorReason::MissingValue {
+            .ok_or(ParseErrorReason::MissingValue {
                 for_keyword: TYPE_STR.to_string(),
-            }))?;
+            })?;
     Ok(type_name.to_string())
 }
 
-pub fn parse_properties(query: &mut Query) -> Result<HashMap<String, String>, ParseQueryError> {
+pub fn parse_properties<'a>(
+    query: &mut Query,
+) -> Result<HashMap<String, String>, ParseQueryError<'a>> {
     let q = query.current.to_string();
     println!("1query = {}", q);
     query.trim_left();
@@ -143,7 +143,7 @@ pub fn kv_get_value(query: &mut Query, key: &str) -> Result<String, ParseKeyValu
     }
 }
 
-pub fn get_nodes_for_relationship(query: &mut Query) -> Result<NodeTuple, ParseQueryError> {
+pub fn get_nodes_for_relationship<'a>(query: &mut Query) -> Result<NodeTuple, ParseQueryError<'a>> {
     assert_eq!(
         FROM_STR,
         query
@@ -178,7 +178,7 @@ pub fn get_nodes_for_relationship(query: &mut Query) -> Result<NodeTuple, ParseQ
     Ok(NodeTuple::new(to, from))
 }
 
-pub fn get_object_kind(query: &mut Query) -> Result<ObjectKind, ParseQueryError> {
+pub fn get_object_kind<'a>(query: &mut Query) -> Result<ObjectKind, ParseQueryError<'a>> {
     let (object_kind_str, query_rest) = query
         .current
         .split_once(SPACE)
@@ -190,7 +190,7 @@ pub fn get_object_kind(query: &mut Query) -> Result<ObjectKind, ParseQueryError>
     Ok(object_kind)
 }
 
-pub fn get_operation(query: &mut Query) -> Result<Operation, ParseQueryError> {
+pub fn get_operation<'a>(query: &mut Query) -> Result<Operation, ParseQueryError<'a>> {
     let keyword =
         query
             .to_next_space()
