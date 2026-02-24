@@ -11,7 +11,7 @@ use crate::{
     },
 };
 
-pub fn parse_remove<'a>(query: &mut Query) -> Result<RemoveQO, ParseQueryError<'a>> {
+pub fn parse_remove<'a>(query: &mut Query) -> Result<RemoveQO, ParseQueryError> {
     println!("Parsing remove: {query}");
     let remove_query_object = {
         match get_object_kind(query)? {
@@ -23,7 +23,7 @@ pub fn parse_remove<'a>(query: &mut Query) -> Result<RemoveQO, ParseQueryError<'
     Ok(remove_query_object)
 }
 
-fn parse_remove_node<'a>(query: &mut Query) -> Result<RemoveNodeQO, ParseQueryError<'a>> {
+fn parse_remove_node<'a>(query: &mut Query) -> Result<RemoveNodeQO, ParseQueryError> {
     println!("parsing remove node: {query}");
     let remove_id = query
         .to_next_space()
@@ -47,7 +47,7 @@ fn parse_remove_node<'a>(query: &mut Query) -> Result<RemoveNodeQO, ParseQueryEr
 
 fn parse_remove_relationship<'a>(
     query: &mut Query,
-) -> Result<RemoveRelationshipQO, ParseQueryError<'a>> {
+) -> Result<RemoveRelationshipQO, ParseQueryError> {
     println!("parsing remove node: {query}");
     let remove_id = query
         .to_end()
@@ -57,7 +57,7 @@ fn parse_remove_relationship<'a>(
     Ok(RemoveRelationshipQO { id: remove_id })
 }
 
-fn get_remove_mode<'a>(query: &mut Query) -> Result<RemoveMode, ParseQueryError<'a>> {
+fn get_remove_mode<'a>(query: &mut Query) -> Result<RemoveMode, ParseQueryError> {
     query.trim_left();
     if query
         .to_next_space()

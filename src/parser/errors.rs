@@ -1,42 +1,42 @@
 use std::num::ParseIntError;
 
 #[derive(Debug, Clone)]
-pub struct ParseQueryError<'a> {
-    pub reason: ParseErrorReason<'a>,
+pub struct ParseQueryError {
+    pub reason: ParseErrorReason,
 }
 
-impl<'a> ParseQueryError<'a> {
+impl ParseQueryError {
     pub fn new(reason: ParseErrorReason) -> ParseQueryError {
         ParseQueryError { reason }
     }
 
-    pub fn default() -> ParseQueryError<'a> {
+    pub fn default() -> ParseQueryError {
         ParseQueryError {
             reason: ParseErrorReason::Default,
         }
     }
 }
 
-impl<'a> From<ParseKeyValueError> for ParseQueryError<'a> {
+impl From<ParseKeyValueError> for ParseQueryError {
     fn from(value: ParseKeyValueError) -> Self {
         ParseQueryError::new(ParseErrorReason::ParseKeyValuePairs(value))
     }
 }
 
-impl<'a> From<ParseMatchError> for ParseQueryError<'a> {
+impl From<ParseMatchError> for ParseQueryError {
     fn from(value: ParseMatchError) -> Self {
         ParseQueryError::new(ParseErrorReason::ParseMatchError(value))
     }
 }
 
-impl<'a> From<ParseSubqueryError<'a>> for ParseQueryError<'a> {
-    fn from(value: ParseSubqueryError<'a>) -> Self {
+impl From<ParseSubqueryError> for ParseQueryError {
+    fn from(value: ParseSubqueryError) -> Self {
         ParseQueryError::new(ParseErrorReason::ParseSubquery(value))
     }
 }
 
-impl<'a> std::error::Error for ParseQueryError<'a> {}
-impl<'a> std::fmt::Display for ParseQueryError<'a> {
+impl<'a> std::error::Error for ParseQueryError {}
+impl<'a> std::fmt::Display for ParseQueryError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "Parsing query failed because of {}", self.reason,)
     }
@@ -45,7 +45,7 @@ impl<'a> std::fmt::Display for ParseQueryError<'a> {
 pub type ErrorSection = (usize, usize);
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum ParseErrorReason<'a> {
+pub enum ParseErrorReason {
     // Invalid
     InvalidKeyword(String),
     InvalidObjectKind,
@@ -63,7 +63,7 @@ pub enum ParseErrorReason<'a> {
     ParseID(ParseIntError),
     ParseKeyValuePairs(ParseKeyValueError),
     ParseMatchError(ParseMatchError),
-    ParseSubquery(ParseSubqueryError<'a>),
+    ParseSubquery(ParseSubqueryError),
 
     // Other
     UnknownRemoveMode,
@@ -72,7 +72,7 @@ pub enum ParseErrorReason<'a> {
     Default,
 }
 
-impl<'a> std::fmt::Display for ParseErrorReason<'a> {
+impl std::fmt::Display for ParseErrorReason {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let s = {
             match self {
@@ -228,26 +228,29 @@ pub enum ParseMatchErrorReason {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub struct ParseSubqueryError<'a> {
-    subquery: &'a str,
+pub struct ParseSubqueryError {
+    subquery: String,
     reason: ParseSubqueryErrorReason,
 }
 
-impl<'a> ParseSubqueryError<'a> {
-    pub fn new(subquery: &'a str, reason: ParseSubqueryErrorReason) -> Self {
-        ParseSubqueryError { subquery, reason }
+impl ParseSubqueryError {
+    pub fn new(subquery: &str, reason: ParseSubqueryErrorReason) -> Self {
+        ParseSubqueryError {
+            subquery: subquery.to_string(),
+            reason,
+        }
     }
 }
-impl<'a> std::error::Error for ParseSubqueryError<'a> {}
-impl<'a> std::fmt::Display for ParseSubqueryError<'a> {
+impl std::error::Error for ParseSubqueryError {}
+impl std::fmt::Display for ParseSubqueryError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self.reason {
-            ParseSubqueryErrorReason::UnclosedSubquery => {
-                write!(f, "Unclosed Subquery '{}'", self.subquery)
-            }
             ParseSubqueryErrorReason::UnexpectedEnd => {
                 write!(f, "Unexpected end in '{}'", self.subquery)
-            }
+            },
+            ParseSubqueryErrorReason::NonZeroLevel => {
+                write!(f, "NonZeroLevel in '{}'", self.subquery)
+            },
         }
     }
 }
@@ -255,5 +258,5 @@ impl<'a> std::fmt::Display for ParseSubqueryError<'a> {
 #[derive(Debug, PartialEq, Clone)]
 pub enum ParseSubqueryErrorReason {
     UnexpectedEnd,
-    UnclosedSubquery,
+    NonZeroLevel,
 }

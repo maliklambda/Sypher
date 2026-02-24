@@ -12,7 +12,7 @@ use crate::parser::{
 
 #[test]
 fn test_remove_node() {
-    let expected_qo = QueryObject::REMOVE(RemoveQO::Node(RemoveNodeQO {
+    let expected_qo = QueryObject::Remove(RemoveQO::Node(RemoveNodeQO {
         id: 1234,
         mode: RemoveMode::CASCADE,
     }));
@@ -37,7 +37,7 @@ fn test_remove_node_fails() {
 #[test]
 fn test_remove_relationship() {
     let expected_qo =
-        QueryObject::REMOVE(RemoveQO::Relationship(RemoveRelationshipQO { id: 62348 }));
+        QueryObject::Remove(RemoveQO::Relationship(RemoveRelationshipQO { id: 62348 }));
     let query = Query::from_str("REMOVE RELATIONSHIP 62348");
     assert_eq!(parse_query(query).unwrap(), expected_qo);
 }

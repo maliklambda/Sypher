@@ -25,6 +25,7 @@ enum Mode {
 * -> tree.indices_map holds only the end indices
 */
 pub fn build_indexed_query_tree(query_str: &str) -> Result<QueryTree, ParseSubqueryError> {
+    let mut has_subqueries = false;
     let mut subquery_end: Option<usize> = None;
     let mut mode = Mode::Normal;
     let chars = &query_str.chars();
@@ -35,7 +36,6 @@ pub fn build_indexed_query_tree(query_str: &str) -> Result<QueryTree, ParseSubqu
     let mut stack: Vec<usize> = vec![];
 
     for (idx, cur) in chars.clone().enumerate() {
-        println!("{cur} - {:?}", stack);
         match mode {
             Mode::Normal => match cur {
                 DOUBLE_QUOTE => mode = Mode::StringDQ,
@@ -46,22 +46,18 @@ pub fn build_indexed_query_tree(query_str: &str) -> Result<QueryTree, ParseSubqu
                         mode = Mode::Ended(idx)
                     } else {
                         let rm_val = stack.pop().unwrap();
-                        println!("Got query [{rm_val}-{idx}]");
                         let v = tree.indices_map.get_mut(&rm_val).unwrap();
                         *v = Some(SubqueryPayload::new(idx + 1));
                         level -= 1;
-                        println!("Decrementing level from {} to {}", level + 1, level);
                     }
                 }
                 'S' => {
                     if &query_str[idx..idx + SUBQ_PATTERN.len()] == SUBQ_PATTERN && idx > 0 {
-                        println!("Starting subquery {:?}", idx);
+                        has_subqueries = true;
                         tree.indices_map.insert(idx, None);
                         stack.push(idx);
-                        println!("inserting to tree");
                         tree.insert(idx);
                         level += 1;
-                        println!("Updating level from {} to {}", level - 1, level);
                     }
                 }
                 _ => {}
@@ -83,18 +79,19 @@ pub fn build_indexed_query_tree(query_str: &str) -> Result<QueryTree, ParseSubqu
     }
     tree.clear_current_nodes();
     tree.clear_queue();
-    println!("Tree == {:?}", tree);
     if level != 0 {
         return Err(ParseSubqueryError::new(
             query_str,
-            ParseSubqueryErrorReason::UnexpectedEnd,
+            ParseSubqueryErrorReason::NonZeroLevel,
         ));
     }
     match subquery_end {
         Some(_) => Ok(tree),
-        None => Err(ParseSubqueryError::new(
+        None => { 
+            if !has_subqueries {return Ok(tree)}
+            Err(ParseSubqueryError::new(
             query_str,
             ParseSubqueryErrorReason::UnexpectedEnd,
-        )),
+        ))},
     }
 }

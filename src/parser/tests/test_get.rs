@@ -6,7 +6,7 @@ use crate::parser::{
 
 #[test]
 fn test_get_node() {
-    let expected_qo = QueryObject::GET(GetQO::Node(76390));
+    let expected_qo = QueryObject::Get(GetQO::Node(76390));
     let query = Query::from_str("GET NODE 76390");
     assert_eq!(parse_query(query).unwrap(), expected_qo);
 }
@@ -18,7 +18,7 @@ fn test_get_node_fails() {
 
 #[test]
 fn test_get_relationship() {
-    let expected_qo = QueryObject::GET(GetQO::Relationship(54321));
+    let expected_qo = QueryObject::Get(GetQO::Relationship(54321));
     let query = Query::from_str("GET RELATIONSHIP 54321");
     assert_eq!(parse_query(query).unwrap(), expected_qo);
 }

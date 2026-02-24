@@ -18,7 +18,7 @@ use crate::{
     types::NodeID,
 };
 
-pub fn parse_update<'a>(query: &mut Query) -> Result<UpdateQO, ParseQueryError<'a>> {
+pub fn parse_update<'a>(query: &mut Query) -> Result<UpdateQO, ParseQueryError> {
     println!("{query}");
     let update_query_object = {
         match get_object_kind(query)? {
@@ -29,7 +29,7 @@ pub fn parse_update<'a>(query: &mut Query) -> Result<UpdateQO, ParseQueryError<'
     Ok(update_query_object)
 }
 
-fn parse_update_node<'a>(query: &mut Query) -> Result<UpdateNodeQO, ParseQueryError<'a>> {
+fn parse_update_node<'a>(query: &mut Query) -> Result<UpdateNodeQO, ParseQueryError> {
     let id: NodeID = query
         .to_next_space()
         .ok_or(ParseQueryError::new(
@@ -50,13 +50,11 @@ fn parse_update_node<'a>(query: &mut Query) -> Result<UpdateNodeQO, ParseQueryEr
 
 fn parse_update_relationship<'a>(
     _query: &mut Query,
-) -> Result<UpdateRelationshipQO, ParseQueryError<'a>> {
+) -> Result<UpdateRelationshipQO, ParseQueryError> {
     todo!("parse update relationship");
 }
 
-fn parse_update_operations<'a>(
-    query: &mut Query,
-) -> Result<Vec<UpdateOperation>, ParseQueryError<'a>> {
+fn parse_update_operations<'a>(query: &mut Query) -> Result<Vec<UpdateOperation>, ParseQueryError> {
     let mut update_operations: Vec<UpdateOperation> = vec![];
     while query.current.len() >= 2 {
         update_operations.push(parse_single_update_operation(query)?);
@@ -67,7 +65,7 @@ fn parse_update_operations<'a>(
 
 fn parse_single_update_operation<'a>(
     query: &mut Query,
-) -> Result<UpdateOperation, ParseQueryError<'a>> {
+) -> Result<UpdateOperation, ParseQueryError> {
     let update_operation: UpdateOperation = {
         match get_update_operation_kind(query).ok_or(ParseQueryError::new(
             ParseErrorReason::InvalidUpdateOperation,
@@ -85,9 +83,7 @@ fn get_update_operation_kind(query: &mut Query) -> Option<UpdateOperationKind> {
     UpdateOperationKind::from_str(query.to_next_space()?)
 }
 
-fn parse_update_operation_add<'a>(
-    query: &mut Query,
-) -> Result<UpdateOperation, ParseQueryError<'a>> {
+fn parse_update_operation_add<'a>(query: &mut Query) -> Result<UpdateOperation, ParseQueryError> {
     println!("{query}");
     let property = query
         .to_next_space()
@@ -115,9 +111,7 @@ fn parse_update_operation_add<'a>(
     Ok(UpdateOperation::Set { property, value })
 }
 
-fn parse_update_operation_set<'a>(
-    query: &mut Query,
-) -> Result<UpdateOperation, ParseQueryError<'a>> {
+fn parse_update_operation_set<'a>(query: &mut Query) -> Result<UpdateOperation, ParseQueryError> {
     let property = query
         .to_next_char(ASSIGNMENT)
         .ok_or(ParseQueryError::new(ParseErrorReason::MissingAssignment))?

@@ -8,7 +8,7 @@ use crate::{
     types::{NodeID, RelationshipID},
 };
 
-pub fn parse_get<'a>(query: &mut Query) -> Result<GetQO, ParseQueryError<'a>> {
+pub fn parse_get<'a>(query: &mut Query) -> Result<GetQO, ParseQueryError> {
     println!("Parsing get: {query}");
     let object_kind = get_object_kind(query)?;
     let get_query_object = {
@@ -20,7 +20,7 @@ pub fn parse_get<'a>(query: &mut Query) -> Result<GetQO, ParseQueryError<'a>> {
     Ok(get_query_object)
 }
 
-fn parse_get_node<'a>(query: &mut Query) -> Result<NodeID, ParseQueryError<'a>> {
+fn parse_get_node<'a>(query: &mut Query) -> Result<NodeID, ParseQueryError> {
     let id: NodeID = query
         .to_end()
         .parse()
@@ -28,7 +28,7 @@ fn parse_get_node<'a>(query: &mut Query) -> Result<NodeID, ParseQueryError<'a>> 
     Ok(id)
 }
 
-fn parse_get_relationship<'a>(query: &mut Query) -> Result<RelationshipID, ParseQueryError<'a>> {
+fn parse_get_relationship<'a>(query: &mut Query) -> Result<RelationshipID, ParseQueryError> {
     let id: RelationshipID = query
         .to_end()
         .parse()

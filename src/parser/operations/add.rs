@@ -1,5 +1,5 @@
 use crate::parser::{
-    errors::{ParseErrorReason, ParseQueryError, ParseSubqueryErrorReason},
+    errors::{ParseErrorReason, ParseQueryError},
     objects::{
         NodeTuple, ObjectKind,
         add::{AddNodeQO, AddQO, AddRelationshipQO},
@@ -11,7 +11,7 @@ use crate::parser::{
     },
 };
 
-pub fn parse_add<'a>(query: &'a mut Query) -> Result<AddQO, ParseQueryError<'a>> {
+pub fn parse_add<'a>(query: &'a mut Query) -> Result<AddQO, ParseQueryError> {
     println!("Parsing add: {query}");
     let add_query_object = {
         match get_object_kind(query)? {
@@ -22,7 +22,7 @@ pub fn parse_add<'a>(query: &'a mut Query) -> Result<AddQO, ParseQueryError<'a>>
     Ok(add_query_object)
 }
 
-fn parse_add_node<'a>(query: &'a mut Query) -> Result<AddNodeQO, ParseQueryError<'a>> {
+fn parse_add_node(query: & mut Query) -> Result<AddNodeQO, ParseQueryError> {
     println!("parsing add node: {query}");
     let identifier = get_identifier(query).map_err(|err| match err {
         ParseErrorReason::MissingIdentifier => {
@@ -33,7 +33,6 @@ fn parse_add_node<'a>(query: &'a mut Query) -> Result<AddNodeQO, ParseQueryError
         }
         _ => todo!("Make get_identifier error pretty"),
     })?;
-    println!("identifier: {identifier}");
 
     let type_name = get_type_name(query).map_err(|err| match err {
         ParseErrorReason::IdentifierMissingType => {
@@ -44,7 +43,6 @@ fn parse_add_node<'a>(query: &'a mut Query) -> Result<AddNodeQO, ParseQueryError
         }
         _ => todo!("Make get_type_name error pretty"),
     })?;
-    println!("typename: {type_name}");
 
     let properties = parse_properties(query)?;
     Ok(AddNodeQO {
@@ -54,9 +52,7 @@ fn parse_add_node<'a>(query: &'a mut Query) -> Result<AddNodeQO, ParseQueryError
     })
 }
 
-fn parse_add_relationship<'a>(
-    query: &'a mut Query,
-) -> Result<AddRelationshipQO, ParseQueryError<'a>> {
+fn parse_add_relationship(query: & mut Query) -> Result<AddRelationshipQO, ParseQueryError> {
     println!("parsing add relationship: {query}");
     let identifier = get_identifier(query).map_err(|err| match err {
         ParseErrorReason::MissingIdentifier => {
@@ -67,7 +63,6 @@ fn parse_add_relationship<'a>(
         }
         _ => todo!("Make get_identifier error pretty"),
     })?;
-    println!("identifier: {identifier}");
     let type_name = get_type_name(query).map_err(|err| match err {
         ParseErrorReason::IdentifierMissingType => {
             ParseQueryError::new(ParseErrorReason::MissingIdentifier)
@@ -77,8 +72,6 @@ fn parse_add_relationship<'a>(
         }
         _ => todo!("Make get_type_name error pretty"),
     })?;
-    println!("typename: {type_name}");
-    println!("query after type name: {query}");
     let NodeTuple { from, to } = get_nodes_for_relationship(query)?;
     let properties = parse_properties(query)?;
     Ok(AddRelationshipQO {

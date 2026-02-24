@@ -1,4 +1,4 @@
-use std::{collections::HashMap, string::ParseError};
+use std::collections::HashMap;
 
 use crate::{
     constants::{
@@ -19,7 +19,7 @@ use crate::{
     },
 };
 
-pub fn get_identifier<'a>(query: &'a mut Query) -> Result<String, ParseErrorReason<'a>> {
+pub fn get_identifier(query: & mut Query) -> Result<String, ParseErrorReason> {
     let identifier = query
         .to_next_space()
         .ok_or(ParseErrorReason::MissingIdentifier)?;
@@ -32,8 +32,7 @@ pub fn get_identifier<'a>(query: &'a mut Query) -> Result<String, ParseErrorReas
     Ok(identifier.to_string())
 }
 
-pub fn get_type_name<'a>(query: &'a mut Query) -> Result<String, ParseErrorReason<'a>> {
-    println!("query: {query}");
+pub fn get_type_name(query: & mut Query) -> Result<String, ParseErrorReason> {
     let expected_type = query
         .to_next_space()
         .ok_or(ParseErrorReason::IdentifierMissingType)?;
@@ -48,11 +47,7 @@ pub fn get_type_name<'a>(query: &'a mut Query) -> Result<String, ParseErrorReaso
     Ok(type_name.to_string())
 }
 
-pub fn parse_properties<'a>(
-    query: &mut Query,
-) -> Result<HashMap<String, String>, ParseQueryError<'a>> {
-    let q = query.current.to_string();
-    println!("1query = {}", q);
+pub fn parse_properties(query: &mut Query) -> Result<HashMap<String, String>, ParseQueryError> {
     query.trim_left();
     if query.to_next_space().ok_or(ParseKeyValueError::new(
         ParseKeyValueErrorReason::MissingPropertyStr,
@@ -61,9 +56,7 @@ pub fn parse_properties<'a>(
         return Err(ParseKeyValueError::new(ParseKeyValueErrorReason::MissingPropertyStr).into());
     }
     let mut properties: HashMap<String, String> = HashMap::new();
-    println!("Parsing properties for {query}");
     while query.current.trim().len() > 1 {
-        println!("Start parsing with this {query}");
         parse_kv_pair(query, &mut properties)?;
     }
     Ok(properties)
@@ -142,7 +135,7 @@ pub fn kv_get_value(query: &mut Query, key: &str) -> Result<String, ParseKeyValu
     }
 }
 
-pub fn get_nodes_for_relationship<'a>(query: &mut Query) -> Result<NodeTuple, ParseQueryError<'a>> {
+pub fn get_nodes_for_relationship(query: &mut Query) -> Result<NodeTuple, ParseQueryError> {
     assert_eq!(
         FROM_STR,
         query
@@ -177,7 +170,7 @@ pub fn get_nodes_for_relationship<'a>(query: &mut Query) -> Result<NodeTuple, Pa
     Ok(NodeTuple::new(to, from))
 }
 
-pub fn get_object_kind<'a>(query: &mut Query) -> Result<ObjectKind, ParseQueryError<'a>> {
+pub fn get_object_kind(query: &mut Query) -> Result<ObjectKind, ParseQueryError> {
     let (object_kind_str, query_rest) = query
         .current
         .split_once(SPACE)
@@ -189,7 +182,7 @@ pub fn get_object_kind<'a>(query: &mut Query) -> Result<ObjectKind, ParseQueryEr
     Ok(object_kind)
 }
 
-pub fn get_operation<'a>(query: &mut Query) -> Result<Operation, ParseQueryError<'a>> {
+pub fn get_operation(query: &mut Query) -> Result<Operation, ParseQueryError> {
     let keyword =
         query
             .to_next_space()

@@ -16,7 +16,7 @@ use crate::{
     types::IdentifierName,
 };
 
-pub fn parse_match<'a>(query: &mut Query) -> Result<MatchQO, ParseQueryError<'a>> {
+pub fn parse_match<'a>(query: &mut Query) -> Result<MatchQO, ParseQueryError> {
     println!("query: {query}");
     // parse pattern
     let pattern = query.to_next_str(WHERE_STR).ok_or(ParseQueryError::new(

@@ -12,7 +12,7 @@ use crate::parser::{
 
 #[test]
 fn test_add_node() {
-    let expected_qo = QueryObject::ADD(AddQO::Node(AddNodeQO {
+    let expected_qo = QueryObject::Add(AddQO::Node(AddNodeQO {
         identifier: "n1".to_string(),
         type_name: "Person".to_string(),
         properties: HashMap::from([
@@ -46,7 +46,7 @@ fn test_add_node_fails() {
 
 #[test]
 fn test_add_relationship() {
-    let expected_qo = QueryObject::ADD(AddQO::Relationship(AddRelationshipQO {
+    let expected_qo = QueryObject::Add(AddQO::Relationship(AddRelationshipQO {
         identifier: "r1".to_string(),
         type_name: "LOVES".to_string(),
         from: 12345,
