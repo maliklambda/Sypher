@@ -7,7 +7,8 @@ use crate::parser::{
         add::{AddNodeQO, AddQO, AddRelationshipQO},
     },
     parse_query::parse_query,
-    query::Query, tests::get_root_qo,
+    query::Query,
+    tests::get_root_qo,
 };
 
 #[test]

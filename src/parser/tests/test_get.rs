@@ -1,7 +1,8 @@
 use crate::parser::{
     objects::{QueryObject, get::GetQO},
     parse_query::parse_query,
-    query::Query, tests::get_root_qo,
+    query::Query,
+    tests::get_root_qo,
 };
 
 #[test]

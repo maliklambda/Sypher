@@ -7,7 +7,8 @@ use crate::parser::{
         remove::{RemoveMode, RemoveNodeQO, RemoveQO, RemoveRelationshipQO},
     },
     parse_query::parse_query,
-    query::Query, tests::get_root_qo,
+    query::Query,
+    tests::get_root_qo,
 };
 
 #[test]

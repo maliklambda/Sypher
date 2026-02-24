@@ -5,11 +5,8 @@ mod test_get;
 mod test_remove;
 mod test_update;
 
-
-pub fn get_root_qo (query: Query) -> QueryObject {
+pub fn get_root_qo(query: Query) -> QueryObject {
     let query_tree = parse_query(query).unwrap();
     assert_eq!(query_tree.bfs().len(), 1);
     query_tree.get_root_query_object().unwrap()
 }
-
-
