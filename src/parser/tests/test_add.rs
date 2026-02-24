@@ -7,7 +7,7 @@ use crate::parser::{
         add::{AddNodeQO, AddQO, AddRelationshipQO},
     },
     parse_query::parse_query,
-    query::Query,
+    query::Query, tests::get_root_qo,
 };
 
 #[test]
@@ -21,11 +21,13 @@ fn test_add_node() {
         ]),
     }));
     let query = Query::from_str("ADD NODE n1 TYPE Person PROPERTIES name='Edos', age=20");
-    assert_eq!(parse_query(query).unwrap(), expected_qo);
+    assert_eq!(get_root_qo(query), expected_qo);
+
     let query = Query::from_str("ADD NODE n1 TYPE Person PROPERTIES name='Edos', age=20;");
-    assert_eq!(parse_query(query).unwrap(), expected_qo);
+    assert_eq!(get_root_qo(query), expected_qo);
+
     let query = Query::from_str("ADD NODE n1 TYPE Person PROPERTIES age=20, name='Edos'");
-    assert_eq!(parse_query(query).unwrap(), expected_qo);
+    assert_eq!(get_root_qo(query), expected_qo);
 }
 
 #[test]
@@ -59,7 +61,7 @@ fn test_add_relationship() {
     let query = Query::from_str(
         "ADD RELATIONSHIP r1 TYPE LOVES FROM 12345 TO 54321 PROPERTIES name='Edos', age=20",
     );
-    assert_eq!(parse_query(query).unwrap(), expected_qo);
+    assert_eq!(get_root_qo(query), expected_qo);
 }
 
 #[test]
@@ -69,10 +71,9 @@ fn test_add_relationship_fails() {
 
     let invalid_query = Query::from_str("ADD RELATIONSHIP n1 PersonPROPERTIES name='Edos', age=20");
     let res = parse_query(invalid_query);
-    println!("hello {:?}", res);
     match res {
         Err(ParseQueryError { reason: r }) => {
-            assert_eq!(r, ParseErrorReason::IdentifierMissingType)
+            assert_eq!(r, ParseErrorReason::MissingIdentifier)
         }
         _ => panic!("Expected query \"{invalid_query}\" to return an error, but it passed"),
     }

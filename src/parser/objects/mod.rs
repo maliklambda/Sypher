@@ -1,5 +1,3 @@
-pub mod query_tree;
-
 use crate::{
     constants::keywords::{NODE_STR, RELATIONSHIP_STR},
     parser::objects::{

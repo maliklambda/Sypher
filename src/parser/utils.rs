@@ -19,7 +19,7 @@ use crate::{
     },
 };
 
-pub fn get_identifier(query: & mut Query) -> Result<String, ParseErrorReason> {
+pub fn get_identifier(query: &mut Query) -> Result<String, ParseErrorReason> {
     let identifier = query
         .to_next_space()
         .ok_or(ParseErrorReason::MissingIdentifier)?;
@@ -32,7 +32,7 @@ pub fn get_identifier(query: & mut Query) -> Result<String, ParseErrorReason> {
     Ok(identifier.to_string())
 }
 
-pub fn get_type_name(query: & mut Query) -> Result<String, ParseErrorReason> {
+pub fn get_type_name(query: &mut Query) -> Result<String, ParseErrorReason> {
     let expected_type = query
         .to_next_space()
         .ok_or(ParseErrorReason::IdentifierMissingType)?;

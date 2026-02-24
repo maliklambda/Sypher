@@ -22,7 +22,7 @@ pub fn parse_add<'a>(query: &'a mut Query) -> Result<AddQO, ParseQueryError> {
     Ok(add_query_object)
 }
 
-fn parse_add_node(query: & mut Query) -> Result<AddNodeQO, ParseQueryError> {
+fn parse_add_node(query: &mut Query) -> Result<AddNodeQO, ParseQueryError> {
     println!("parsing add node: {query}");
     let identifier = get_identifier(query).map_err(|err| match err {
         ParseErrorReason::MissingIdentifier => {
@@ -52,7 +52,7 @@ fn parse_add_node(query: & mut Query) -> Result<AddNodeQO, ParseQueryError> {
     })
 }
 
-fn parse_add_relationship(query: & mut Query) -> Result<AddRelationshipQO, ParseQueryError> {
+fn parse_add_relationship(query: &mut Query) -> Result<AddRelationshipQO, ParseQueryError> {
     println!("parsing add relationship: {query}");
     let identifier = get_identifier(query).map_err(|err| match err {
         ParseErrorReason::MissingIdentifier => {

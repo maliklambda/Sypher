@@ -8,7 +8,7 @@ use crate::parser::objects::QueryObject;
 
 pub type SubqueryIndex = usize;
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct QueryTree {
     pub root: Rc<RefCell<TreeNode>>,
     pub current_nodes: Vec<Rc<RefCell<TreeNode>>>,
@@ -31,18 +31,6 @@ impl QueryTree {
         }
     }
 
-    pub fn clear_current_nodes(&mut self) {
-        self.current_nodes = vec![];
-    }
-
-    pub fn clear_queue(&mut self) {
-        self.queue = vec![].into();
-    }
-
-    pub fn clear_visited(&mut self) {
-        self.visited = vec![];
-    }
-
     pub fn insert(&mut self, value: SubqueryIndex) {
         let new_node = TreeNode::new(value);
         println!("{:?}", new_node);
@@ -53,6 +41,14 @@ impl QueryTree {
             .children
             .push(new_node.clone());
         self.current_nodes.push(new_node);
+    }
+
+    // used for testing
+    pub fn get_root_query_object(&self) -> Option<QueryObject> {
+        let root_key = self.root.borrow().value;
+        let a = self.indices_map.get(&root_key)?.as_ref()?;
+        a.query_object.clone()
+        // a.query_object.as_ref()
     }
 
     pub fn bfs(&self) -> Vec<SubqueryIndex> {
@@ -67,6 +63,18 @@ impl QueryTree {
             }
         }
         visited
+    }
+
+    pub fn clear_current_nodes(&mut self) {
+        self.current_nodes = vec![];
+    }
+
+    pub fn clear_queue(&mut self) {
+        self.queue = vec![].into();
+    }
+
+    pub fn clear_visited(&mut self) {
+        self.visited = vec![];
     }
 }
 
@@ -93,7 +101,7 @@ impl Iterator for QueryTree {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct SubqueryPayload {
     pub query_section_end: SubqueryIndex,
     pub query_object: Option<QueryObject>,
@@ -108,7 +116,7 @@ impl SubqueryPayload {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub struct TreeNode {
     pub value: SubqueryIndex,
     pub children: Vec<Rc<RefCell<TreeNode>>>,

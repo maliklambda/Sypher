@@ -247,10 +247,10 @@ impl std::fmt::Display for ParseSubqueryError {
         match self.reason {
             ParseSubqueryErrorReason::UnexpectedEnd => {
                 write!(f, "Unexpected end in '{}'", self.subquery)
-            },
+            }
             ParseSubqueryErrorReason::NonZeroLevel => {
                 write!(f, "NonZeroLevel in '{}'", self.subquery)
-            },
+            }
         }
     }
 }

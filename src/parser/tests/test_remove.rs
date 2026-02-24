@@ -7,7 +7,7 @@ use crate::parser::{
         remove::{RemoveMode, RemoveNodeQO, RemoveQO, RemoveRelationshipQO},
     },
     parse_query::parse_query,
-    query::Query,
+    query::Query, tests::get_root_qo,
 };
 
 #[test]
@@ -17,11 +17,11 @@ fn test_remove_node() {
         mode: RemoveMode::CASCADE,
     }));
     let query = Query::from_str("REMOVE NODE 1234 MODE CASCADE");
-    assert_eq!(parse_query(query).unwrap(), expected_qo);
+    assert_eq!(get_root_qo(query), expected_qo);
     let query = Query::from_str("REMOVE NODE 1234 MODE CASCADE;");
-    assert_eq!(parse_query(query).unwrap(), expected_qo);
+    assert_eq!(get_root_qo(query), expected_qo);
     let query = Query::from_str("REMOVE NODE 1234 MODE CASCADE");
-    assert_eq!(parse_query(query).unwrap(), expected_qo);
+    assert_eq!(get_root_qo(query), expected_qo);
 }
 
 #[test]
@@ -39,7 +39,7 @@ fn test_remove_relationship() {
     let expected_qo =
         QueryObject::Remove(RemoveQO::Relationship(RemoveRelationshipQO { id: 62348 }));
     let query = Query::from_str("REMOVE RELATIONSHIP 62348");
-    assert_eq!(parse_query(query).unwrap(), expected_qo);
+    assert_eq!(get_root_qo(query), expected_qo);
 }
 
 #[test]

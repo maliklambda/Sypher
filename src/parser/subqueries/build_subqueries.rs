@@ -87,11 +87,14 @@ pub fn build_indexed_query_tree(query_str: &str) -> Result<QueryTree, ParseSubqu
     }
     match subquery_end {
         Some(_) => Ok(tree),
-        None => { 
-            if !has_subqueries {return Ok(tree)}
+        None => {
+            if !has_subqueries {
+                return Ok(tree);
+            }
             Err(ParseSubqueryError::new(
-            query_str,
-            ParseSubqueryErrorReason::UnexpectedEnd,
-        ))},
+                query_str,
+                ParseSubqueryErrorReason::UnexpectedEnd,
+            ))
+        }
     }
 }

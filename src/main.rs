@@ -1,4 +1,7 @@
-use crate::{examples::EXAMPLE_QUERIES, parser::{parse_query::parse_query, query::Query}};
+use crate::{
+    examples::EXAMPLE_QUERIES,
+    parser::{parse_query::parse_query, query::Query},
+};
 
 mod constants;
 mod examples;
