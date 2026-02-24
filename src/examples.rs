@@ -9,8 +9,7 @@ pub const MATCH_QUERY_INGOING: &str = "MATCH (food:Food) <-[r:LIKES]- (person:Pe
 pub const MATCH_QUERY_OUTGOING: &str =
     "MATCH (person:Person) -[r:LIKES]-> (food:Food) WHERE person.name = 'Edos' RETURN food.name";
 pub const SUBQ_QUERY: &str = "GET NODE SUBQ{hello}";
-pub const SUBQ_RECURSIVE_QUERY: &str =
-    "GET SUBQ{L1 SUBQ{L2.1 SUBQ{L3.1 SUBQ {L4.1}}, SUBQ{L3.2}}; SUBQ{L2.2}}";
+pub const SUBQ_RECURSIVE_QUERY: &str = "MATCH (person:Person) -[r:LIKES]-> (food:Food) WHERE person.name = SUBQ{GET NODE 1234}.name RETURN person.name";
 pub const UPDATE_RELATIONSHIP_QUERY: &str =
     "UPDATE NODE 1234 SET name = 'Delcos', REMOVE age, ADD age VALUE 21";
 pub const UPDATE_NODE_QUERY: &str =

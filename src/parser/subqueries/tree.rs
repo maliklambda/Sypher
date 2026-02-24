@@ -8,7 +8,7 @@ use crate::parser::objects::QueryObject;
 
 pub type SubqueryIndex = usize;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct QueryTree {
     pub root: Rc<RefCell<TreeNode>>,
     pub current_nodes: Vec<Rc<RefCell<TreeNode>>>,
@@ -93,10 +93,10 @@ impl Iterator for QueryTree {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct SubqueryPayload {
-    query_section_end: SubqueryIndex,
-    query_object: Option<QueryObject>,
+    pub query_section_end: SubqueryIndex,
+    pub query_object: Option<QueryObject>,
 }
 
 impl SubqueryPayload {

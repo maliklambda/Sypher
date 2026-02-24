@@ -21,16 +21,17 @@ enum Mode {
 }
 
 /*
-* Returns SubqueryIndexTree in unparsed state
+* Returns QueryTree in unparsed state
 * -> tree.indices_map holds only the end indices
 */
-pub fn build_uparsed_query_tree(query_str: &str) -> Result<QueryTree, ParseSubqueryError> {
+pub fn build_indexed_query_tree(query_str: &str) -> Result<QueryTree, ParseSubqueryError> {
     let mut subquery_end: Option<usize> = None;
     let mut mode = Mode::Normal;
     let chars = &query_str.chars();
     let mut level = 0;
     let mut tree = QueryTree::new(0);
-    tree.indices_map.insert(0, Some(SubqueryPayload::new(query_str.len())));
+    tree.indices_map
+        .insert(0, Some(SubqueryPayload::new(query_str.len())));
     let mut stack: Vec<usize> = vec![];
 
     for (idx, cur) in chars.clone().enumerate() {
@@ -47,7 +48,7 @@ pub fn build_uparsed_query_tree(query_str: &str) -> Result<QueryTree, ParseSubqu
                         let rm_val = stack.pop().unwrap();
                         println!("Got query [{rm_val}-{idx}]");
                         let v = tree.indices_map.get_mut(&rm_val).unwrap();
-                        *v = Some(SubqueryPayload::new(idx));
+                        *v = Some(SubqueryPayload::new(idx + 1));
                         level -= 1;
                         println!("Decrementing level from {} to {}", level + 1, level);
                     }
