@@ -4,6 +4,8 @@ mod test_add;
 mod test_get;
 mod test_remove;
 mod test_update;
+mod test_match;
+mod test_subquery;
 
 pub fn get_root_qo(query: Query) -> QueryObject {
     let query_tree = parse_query(query).unwrap();
