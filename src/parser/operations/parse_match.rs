@@ -16,7 +16,7 @@ use crate::{
     types::IdentifierName,
 };
 
-pub fn parse_match<'a>(query: &mut Query) -> Result<MatchQO, ParseQueryError> {
+pub fn parse_match(query: &mut Query) -> Result<MatchQO, ParseQueryError> {
     println!("query: {query}");
     // parse pattern
     let pattern = query.to_next_str(WHERE_STR).ok_or(ParseQueryError::new(
@@ -132,7 +132,7 @@ fn parse_node(query: &mut Query) -> Result<MatchObject, ParseMatchError> {
             pattern: query.current.to_string(),
         })?;
 
-    let (id_name, type_name) = parse_name_type(query, MATCH_NODE_END.to_string().as_str())?;
+    let (id_name, type_name) = parse_rel_name_type(query, MATCH_NODE_END.to_string().as_str())?;
 
     Ok(MatchObject {
         name: id_name.to_string(),
@@ -147,11 +147,12 @@ fn parse_node(query: &mut Query) -> Result<MatchObject, ParseMatchError> {
 fn parse_relationship(query: &mut Query) -> Result<MatchObject, ParseMatchError> {
     // may start with "-" (in case of "-[]->") or "<-" (in case of "<-[]-")
     let cur = query.current.to_string();
+    println!("cur: {cur}");
     match cur {
         s if s.starts_with(MATCH_REL_DIRECTION_LEFT) => parse_ingoing_rel(query),
         s if s.starts_with(MATCH_REL_TAIL) => parse_outgoing_rel(query),
         _ => Err(ParseMatchError {
-            reason: ParseMatchErrorReason::StartWithoutNode,
+            reason: ParseMatchErrorReason::BadRelationship,
             pattern: query.current.to_string(),
         }),
     }
@@ -163,7 +164,19 @@ fn parse_relationship(query: &mut Query) -> Result<MatchObject, ParseMatchError>
 fn parse_ingoing_rel(pattern: &mut Query) -> Result<MatchObject, ParseMatchError> {
     println!("parsing ingoing rel");
     pattern.trim_left_str(MATCH_REL_DIRECTION_LEFT).unwrap();
-    let (id_name, type_name) = parse_name_type(pattern, MATCH_REL_TAIL.to_string().as_str())?;
+    match pattern.current {
+        s if s.starts_with(MATCH_REL_START) => {
+            // normal relationship
+            println!("normal rel")
+        }
+        s if s.starts_with(MATCH_NODE_START) => {
+            // simple relationship
+            println!("simple rel")
+        }
+        _ => println!("syntax error!"),
+    }
+    todo!("{}", pattern);
+    let (id_name, type_name) = parse_rel_name_type(pattern, MATCH_REL_TAIL.to_string().as_str())?;
     let id_name = id_name.replace(MATCH_REL_START, "");
     let type_name = type_name.replace(MATCH_REL_END, "");
     println!("Pattern after parsing ingoing rels: {pattern}");
@@ -182,40 +195,40 @@ fn parse_ingoing_rel(pattern: &mut Query) -> Result<MatchObject, ParseMatchError
 * Matching query looks something like this: "(n1:node)-[r:TYPE]->(n2:node)"
 */
 fn parse_outgoing_rel(pattern: &mut Query) -> Result<MatchObject, ParseMatchError> {
-    println!("parsing ingoing rel");
+    println!("parsing outgoing rel");
     pattern.trim_left_char(MATCH_REL_TAIL).unwrap();
-    let (id_name, type_name) = parse_name_type(pattern, MATCH_REL_DIRECTION_RIGHT)?;
+
+    // simple relationship: "->"
+    if pattern.trim_left_char(MATCH_REL_HEAD).is_some() {
+        todo!("simple outgoing rel");
+    }
+    let (id_name, type_name) = parse_rel_name_type(pattern, MATCH_REL_DIRECTION_RIGHT)?;
     let id_name = id_name.replace(MATCH_REL_START, "");
     let type_name = type_name.replace(MATCH_REL_END, "");
+
     println!("Pattern after parsing outgoing rels: {pattern}");
-    Ok(MatchObject {
-        name: id_name,
-        object_type: type_name,
-        data: IdentifierData::Relationship {
+    Ok(MatchObject::new(
+        Some(id_name),
+        Some(type_name),
+        IdentifierData::Relationship {
             start: None,
             end: None,
             direction: RelationshipDirection::Outgoing,
         },
-    })
+    ))
 }
 
-fn parse_name_type<'a>(
+fn parse_rel_name_type<'a>(
     query: &'a mut Query,
     end_str: &str,
-) -> Result<(&'a str, &'a str), ParseMatchError> {
-    let cur = query.current.to_string();
-    let [id_name, type_name] = query
-        .to_next_str(end_str)
-        .ok_or(ParseMatchError::new(
-            ParseMatchErrorReason::ParseNameType,
-            cur.clone(),
-        ))?
-        .split(MATCH_TYPE_SEPARATOR)
-        .collect::<Vec<_>>()
-        .as_slice()
-        .try_into()
-        .map_err(|_| ParseMatchError::new(ParseMatchErrorReason::ParseNameType, cur))?;
-    Ok((id_name, type_name))
+) -> Result<(&'a str /*name*/, &'a str /*type*/), ParseMatchError> {
+    let content = query.to_next_str(end_str).unwrap();
+    let p = content.find(MATCH_TYPE_SEPARATOR);
+    match p {
+        Some(idx) => Ok((&content[..idx], &content[idx..])),
+        None => Ok(("generate_unique_id", content)), // TODO: generate unique relationship name
+        // None => Ok((query.generate_uuid(), content)),
+    }
 }
 
 fn alphabetic_chars_only(input: &str) -> String {
@@ -250,7 +263,7 @@ fn parse_return_values(s: &str) -> Result<Vec<ReturnValue>, ParseMatchError> {
     Ok(values)
 }
 
-fn parse_conditions<'a>(_conditions_str: &str) -> Result<Vec<FilterCondition>, ParseMatchError> {
+fn parse_conditions(_conditions_str: &str) -> Result<Vec<FilterCondition>, ParseMatchError> {
     // todo!("parse conditions");
     Ok(vec![])
 }

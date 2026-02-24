@@ -148,6 +148,20 @@ pub mod parse_match {
         pub data: IdentifierData,
     }
 
+    impl MatchObject {
+        pub fn new(
+            name: Option<IdentifierName>,
+            type_name: Option<String>,
+            data: IdentifierData,
+        ) -> Self {
+            MatchObject {
+                name: name.unwrap_or(todo!("Generate name")),
+                object_type: type_name.unwrap_or(todo!("Generate type name")),
+                data,
+            }
+        }
+    }
+
     #[derive(Debug, PartialEq, Clone)]
     pub enum IdentifierData {
         Node {

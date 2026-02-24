@@ -2,10 +2,10 @@ use crate::parser::{objects::QueryObject, parse_query::parse_query, query::Query
 
 mod test_add;
 mod test_get;
-mod test_remove;
-mod test_update;
 mod test_match;
+mod test_remove;
 mod test_subquery;
+mod test_update;
 
 pub fn get_root_qo(query: Query) -> QueryObject {
     let query_tree = parse_query(query).unwrap();

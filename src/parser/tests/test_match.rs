@@ -1,8 +1,13 @@
 use std::collections::HashMap;
 
-use crate::parser::{objects::{QueryObject, parse_match::{MatchQO, ReturnValue}}, query::Query, tests::get_root_qo};
-
-
+use crate::parser::{
+    objects::{
+        QueryObject,
+        parse_match::{MatchQO, ReturnValue},
+    },
+    query::Query,
+    tests::get_root_qo,
+};
 
 #[test]
 fn test_match_ingoing() {
@@ -26,4 +31,3 @@ fn test_match_fails() {
         _ => panic!("Expected query \"{invalid_query}\" to return an error, but it passed"),
     }
 }
-

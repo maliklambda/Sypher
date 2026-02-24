@@ -188,7 +188,7 @@ impl std::fmt::Display for ParseMatchError {
                 "pattern '{}' does not start with a Node: '(name:type)'",
                 self.pattern
             ),
-            ParseMatchErrorReason::UnclosedRelationship => write!(
+            ParseMatchErrorReason::BadRelationship => write!(
                 f,
                 "Relationship was not closed properly in pattern {}",
                 self.pattern
@@ -222,7 +222,7 @@ impl ParseMatchError {
 pub enum ParseMatchErrorReason {
     StartWithoutNode,
     ParseNameType,
-    UnclosedRelationship,
+    BadRelationship,
     ParseReturnValues,
     UnknownIdentifierInReturnValues { unknown: String },
 }

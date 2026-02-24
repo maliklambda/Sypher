@@ -74,6 +74,7 @@ pub mod special_chars {
         pub const MATCH_REL_DIRECTION_LEFT: &str = "<-";
         pub const MATCH_REL_DIRECTION_RIGHT: &str = "->";
         pub const MATCH_REL_TAIL: char = '-';
+        pub const MATCH_REL_HEAD: char = '>';
         pub const MATCH_TYPE_SEPARATOR: char = ':';
     }
 }

@@ -1,10 +1,11 @@
 use crate::constants::special_chars::{QUERY_SEPARATOR, SPACE};
 
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone)]
 pub struct Query<'a> {
     pub original: &'a str,
     pub current: &'a str,
     pub offset: usize,
+    pub generated_names: Vec<String>,
 }
 
 impl Query<'_> {
@@ -13,6 +14,7 @@ impl Query<'_> {
             original: s,
             current: s,
             offset: 0,
+            generated_names: vec![],
         }
     }
 
@@ -82,6 +84,12 @@ impl Query<'_> {
         let s = self.current;
         self.current = "";
         s
+    }
+
+    pub fn generate_uuid(&mut self) -> &str {
+        let new_uuid = uuid::Uuid::new_v4();
+        self.generated_names.push(new_uuid.to_string());
+        self.generated_names.last().unwrap()
     }
 }
 
