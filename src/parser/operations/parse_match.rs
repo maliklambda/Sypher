@@ -175,10 +175,10 @@ fn parse_ingoing_rel(pattern: &mut Query) -> Result<MatchObject, ParseMatchError
         }
         _ => println!("syntax error!"),
     }
-    todo!("{}", pattern);
+    // todo!("{}", pattern);
     let (id_name, type_name) = parse_rel_name_type(pattern, MATCH_REL_TAIL.to_string().as_str())?;
     let id_name = id_name.replace(MATCH_REL_START, "");
-    let type_name = type_name.replace(MATCH_REL_END, "");
+    let type_name = type_name.replace([MATCH_REL_START, MATCH_REL_END], "");
     println!("Pattern after parsing ingoing rels: {pattern}");
     Ok(MatchObject {
         name: id_name,
@@ -225,7 +225,7 @@ fn parse_rel_name_type<'a>(
     let content = query.to_next_str(end_str).unwrap();
     let p = content.find(MATCH_TYPE_SEPARATOR);
     match p {
-        Some(idx) => Ok((&content[..idx], &content[idx..])),
+        Some(idx) => Ok((&content[..idx], &content[idx+1..])),
         None => Ok(("generate_unique_id", content)), // TODO: generate unique relationship name
         // None => Ok((query.generate_uuid(), content)),
     }
