@@ -10,7 +10,7 @@ A query language for directed property graph databases with a focus on expressiv
 
 ## Subqueries
 In Sypher, a subquery is initialized with the keyword <code>SUBQ</code>. 
-The subquery is placed directly after that in curly brackets. 
+The subquery is placed directly after that in curly brackets <code>{}</code>. 
 A valid subquery looks like this:<br>
 <code>GET NODE SUBQ{MATCH (p:Person) -[LIKES]-> (f:Food) WHERE f.name = "Pizza" RETURN p.id LIMIT 1}</code><br>
 (Return the node of a person that likes Pizza.)
