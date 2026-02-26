@@ -8,6 +8,23 @@ A query language for directed property graph databases with a focus on expressiv
 - Abstraction - Complex low-level operations are described and executed by simple queries.
 - Subqueries - Support for recursive subqueries. 
 
+## Basics of Queries 
+Every valid query starts with one of the [supported_operators](#operators) and returns a [tree of queries](#subquery-trees).<br>
+The building blocks of every query are [objects](#objects), [patterns](#match-description), [conditions](#boolean-expression-trees-bet) and [aggregations](#aggregations).
+
+### Objects
+Objects are distinct from [QueryObjects](#query-objects) which hold information about a single query. 
+Rather, objects refer to constructs that are usable in the query, through the use of their associated keywords. 
+Every object has a keyword associated with it (usually it is the objects name spelled in all caps). 
+The following types of objects exist:
+1. Node
+2. Relationship
+3. Index
+4. Constraint
+
+
+### Aggregations
+
 
 ## Operators
 Only a handfull of operators are supported. However combining them in various ways allows for powerful and versitile queries.
@@ -23,7 +40,7 @@ Only a handfull of operators are supported. However combining them in various wa
 ### MATCH 
 <code>MATCH 'pattern' WHERE 'conditions' RETURN 'results';</code>
 
-#### Description
+#### MATCH Description
 Perhabs the most complicated of all operators. It allows for the matching of a pattern against the graph. 
 This can be thought of as a canvas of large geometric forms (the graph represented by the database) and a smaller geometric form (the pattern specified in the MATCH statement). What the MATCH operator does is, that it takes the smaller geometric form and searches where it matches (hence the operators name) the existing forms on the canvas. Thereafter the results are filtered and aggregated before they are returned.
 
@@ -34,7 +51,7 @@ This can be thought of as a canvas of large geometric forms (the graph represent
     <code>(identifier_name:node_type)</code><br>
     <code>idenfier_name</code> introduces a variable that may be used in later parts of the statement. 
     <code>identifier_name</code> must be unique, otherwise the query will not execute.
-    This may be elided hould no <code>identifier_name</code> be needed. 
+    This may be elided should no specific <code>identifier_name</code> be needed. 
     In this case, a new <code>identifier_name</code> will still be introduced, it will only get an auto-generated name assigned to it.
     For elision of the <code>identifier_name</code>, the syntax <code>(node_type)</code> is used.<br>
     <code>node_type</code> introduces a restriction on the <code>identifier_name</code>s type, as it can only be of type <code>node_type</code>. 
@@ -111,8 +128,13 @@ Internally, the traversal has the following steps:
 The tree stores the start and end index in the original (or root) query for each subquery. 
 This makes it possible for the runtime-query-interpreter-engine to replace the entire subquery-string with a string-representation of the result of its execution.
 
+### Query Objects
+Every successfully parsed single query (one node of the query-tree) will return a <code>QueryObject</code> which stores the extracted information about the query.
+This includes the [operator](#operators) and data associated with it.
 
 
+## Boolean Expression Trees (BET)
+Also called "Binary Expression Trees". 
 
 
 
