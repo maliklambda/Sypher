@@ -17,7 +17,7 @@ macro_rules! define_constants {
 
 define_constants![
     MATCH_SIMPLE_INGOING =
-        "MATCH (p:Person) <- (f:Food) WHERE p.name = 'some_name' RETURN p.name, f.cuisine",
+        "MATCH (p) <- (f:Food) WHERE p.name = 'some_name' RETURN p.name, f.cuisine",
     MATCH_SIMPLE_OUTGOING =
         "MATCH (p:Person) -> (f:Food) WHERE p.name = 'some_name' RETURN p.name, f.cuisine",
     MATCH_INGOING = "MATCH (food:Food) <-[r:LIKES]- (person:Person) WHERE person.name = 'Edos' RETURN person.age, foods.name",
