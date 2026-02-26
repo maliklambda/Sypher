@@ -10,17 +10,19 @@ A query language for directed property graph databases with a focus on expressiv
 
 ## Basics of Queries 
 Every valid query starts with one of the [supported_operators](#operators) and returns a [tree of queries](#subquery-trees).<br>
-The building blocks of every query are [objects](#objects), [patterns](#match-description-and-pattern-matching), [conditions](#boolean-expression-trees-bet) and [aggregations](#aggregations).
+The building blocks of every query are [objects](#objects), [patterns](#match-description-and-pattern-matching), [conditions](#boolean-expression-trees-bet) and [aggregations](#aggregations). 
+Multiple queries may be chained together. They are separated by semicolons <code>;</code>.
 
 ### Objects
 Objects are distinct from [QueryObjects](#query-objects) which hold information about a single query. 
 Rather, objects refer to constructs that are usable in the query, through the use of their associated keywords. 
 Every object has a keyword associated with it (usually it is the objects name spelled in all caps). 
 The following types of objects exist:
-1. Node
-2. Relationship
-3. Index
-4. Constraint
+1. Node - <code>NODE</code>
+2. Relationship - <code>RELATIONSHIP</code>
+3. Properties - <code>PROPERTIES</code>
+4. Index - <code>INDEX</code>
+5. Constraint - <code>CONSTRAINT</code>
 
 
 ### Aggregations
@@ -29,16 +31,46 @@ The following types of objects exist:
 ## Operators
 Only a handfull of operators are supported. However combining them in various ways allows for powerful and versitile queries.
 
+
 ### GET
+<code>GET object object_id</code>
+
+#### GET Description
+Returns metadata for an [object](#objects).
+
+#### Syntax
+
+
 
 ### REMOVE
+<code>REMOVE object MODE removal_mode</code>
+
+#### REMOVE Description
+Removes an [object](#objects).
+
+#### Syntax
+
 
 ### ADD
+<code>ADD object object_name object_info</code>
+
+#### ADD Description
+Adds a new [object](#objects).
+
+#### Syntax
+
 
 ### UPDATE 
+<code>UPDATE object object_id update_operations</code>
+
+#### UPDATE Description
+Updates an existing [object](#objects).
+
+#### Syntax
+
 
 ### MATCH 
-<code>MATCH 'pattern' WHERE 'conditions' RETURN 'results';</code>
+<code>MATCH pattern WHERE conditions RETURN results</code>
 
 #### MATCH Description and Pattern Matching
 Perhabs the most complicated of all operators. It allows for the matching of a pattern against the graph. 
