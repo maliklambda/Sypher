@@ -1,6 +1,6 @@
 # Sypher
 
-A query language for directed property graph databases with a focus on expressiveness.
+A query language for directed property graph databases with a focus on expressiveness and simplicity.
 
 ## Key Features
 
@@ -10,7 +10,7 @@ A query language for directed property graph databases with a focus on expressiv
 
 ## Basics of Queries 
 Every valid query starts with one of the [supported_operators](#operators) and returns a [tree of queries](#subquery-trees).<br>
-The building blocks of every query are [objects](#objects), [patterns](#match-description), [conditions](#boolean-expression-trees-bet) and [aggregations](#aggregations).
+The building blocks of every query are [objects](#objects), [patterns](#match-description-and-pattern-matching), [conditions](#boolean-expression-trees-bet) and [aggregations](#aggregations).
 
 ### Objects
 Objects are distinct from [QueryObjects](#query-objects) which hold information about a single query. 
@@ -40,12 +40,14 @@ Only a handfull of operators are supported. However combining them in various wa
 ### MATCH 
 <code>MATCH 'pattern' WHERE 'conditions' RETURN 'results';</code>
 
-#### MATCH Description
+#### MATCH Description and Pattern Matching
 Perhabs the most complicated of all operators. It allows for the matching of a pattern against the graph. 
 This can be thought of as a canvas of large geometric forms (the graph represented by the database) and a smaller geometric form (the pattern specified in the MATCH statement). What the MATCH operator does is, that it takes the smaller geometric form and searches where it matches (hence the operators name) the existing forms on the canvas. Thereafter the results are filtered and aggregated before they are returned.
 
 #### Syntax
-<code>pattern</code> is a construct that is made up of <strong>nodes</strong> and <strong>relationships</strong>. <br>
+<code>pattern</code> is a construct that is made up of <strong>nodes</strong> and <strong>relationships</strong>. 
+A <code>pattern</code> must contain at least one node and exactly n-1 relationships with n being the number of nodes in the pattern. 
+<br>
 <p>
     <strong>Nodes</strong> are denoted with parenthesis <code>()</code> in the following way: 
     <code>(identifier_name:node_type)</code><br>
