@@ -1,7 +1,4 @@
-use crate::{
-    examples::EXAMPLE_QUERIES,
-    parser::{parse_query::parse_query, query::Query},
-};
+use crate::parser::{parse_query::parse_query, query::Query};
 
 mod constants;
 mod examples;
@@ -9,7 +6,7 @@ mod parser;
 mod types;
 
 fn main() {
-    let example_query = examples::MATCH_SIMPLE_INGOING;
+    let example_query = examples::MATCH_CONDITIONS;
     let query = Query::from_str(example_query);
     match parse_query(query) {
         Ok(result) => println!("Query parsed successfully. Query object: {:?}", result),

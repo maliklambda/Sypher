@@ -22,10 +22,13 @@ pub mod keywords {
         pub const VALUE_STR: &str = "VALUE";
     }
 
-    pub mod condition {
+    pub mod conditions {
         pub const WHERE_STR: &str = "WHERE";
         pub const AND_STR: &str = "AND";
         pub const OR_STR: &str = "OR";
+        pub const NOT_STR: &str = "NOT";
+        pub const LIKE_STR: &str = "LIKE";
+        pub const IN_STR: &str = "IN";
         pub const CONDITION_GROUP_START: char = '(';
         pub const CONDITION_GROUP_END: char = ')';
     }

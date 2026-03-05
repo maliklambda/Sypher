@@ -132,12 +132,12 @@ pub mod get {
 pub mod parse_match {
     use std::collections::HashMap;
 
-    use crate::types::IdentifierName;
+    use crate::{parser::operations::conditions::ConditionTree, types::IdentifierName};
 
     #[derive(Debug, PartialEq, Clone)]
     pub struct MatchQO {
         pub match_objects: HashMap<IdentifierName, MatchObject>,
-        pub filters: Vec<FilterCondition>,
+        pub condition_tree: ConditionTree,
         pub return_values: Vec<ReturnValue>,
     }
 
@@ -186,6 +186,23 @@ pub mod parse_match {
         left_side: String,
         comparison_operator: ComparisonOperator,
         right_side: String,
+    }
+
+    impl FilterCondition {
+        pub fn true_condition() -> FilterCondition {
+            Self {
+                left_side: "".to_string(),
+                comparison_operator: ComparisonOperator::Equal,
+                right_side: "".to_string(),
+            }
+        }
+    }
+
+    #[derive(Debug, PartialEq, Clone, Copy)]
+    pub enum Connector {
+        Root,
+        And,
+        Or,
     }
 
     #[derive(Debug, PartialEq, Clone)]

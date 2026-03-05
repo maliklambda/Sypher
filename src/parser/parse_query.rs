@@ -12,12 +12,12 @@ pub fn parse_query(mut query: Query) -> Result<QueryTree, ParseQueryError> {
     query.prepare();
     let mut query_tree = build_indexed_query_tree(query.current)?;
     println!("Got subquery index tree: {:?}", query_tree);
-    let mut query_nodes = query_tree.clone().collect::<Vec<_>>(); 
-    /* 
-    * TODO: remove .clone() call and iterate only over references
-    * All references are currently stored in root.children
-    * As of now, every step in the traversal clones the entire subtree under the node.
-    */
+    let mut query_nodes = query_tree.clone().collect::<Vec<_>>();
+    /*
+     * TODO: remove .clone() call and iterate only over references
+     * All references are currently stored in root.children
+     * As of now, every step in the traversal clones the entire subtree under the node.
+     */
     query_nodes.reverse();
     for query_node in query_nodes {
         let start_idx = query_node.borrow().value;

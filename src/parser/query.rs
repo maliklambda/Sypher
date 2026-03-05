@@ -37,6 +37,12 @@ impl Query<'_> {
         self.offset += whitespace_len;
     }
 
+    pub fn trim_n_left(&mut self, n: usize) {
+        assert!(self.current.len() > n);
+        self.current = &self.current[n..];
+        self.offset += n
+    }
+
     pub fn trim_left_str<'a>(&mut self, remove: &'a str) -> Option<&'a str> {
         self.trim_left();
         if self.current.starts_with(remove) {

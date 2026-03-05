@@ -13,10 +13,12 @@ use crate::{
 * This mode is used only during the iteration of subquery-parsing.
 * It Shows which state the parsed query is currently in.
 */
-enum Mode {
+#[derive(Debug)]
+pub enum IterMode {
     Normal,
     StringDQ,
     StringSQ,
+    Skip(usize),
     Ended(usize),
 }
 
@@ -27,7 +29,7 @@ enum Mode {
 pub fn build_indexed_query_tree(query_str: &str) -> Result<QueryTree, ParseSubqueryError> {
     let mut has_subqueries = false;
     let mut subquery_end: Option<usize> = None;
-    let mut mode = Mode::Normal;
+    let mut mode = IterMode::Normal;
     let chars = &query_str.chars();
     let mut level = 0;
     let mut tree = QueryTree::new(0);
@@ -37,13 +39,13 @@ pub fn build_indexed_query_tree(query_str: &str) -> Result<QueryTree, ParseSubqu
 
     for (idx, cur) in chars.clone().enumerate() {
         match mode {
-            Mode::Normal => match cur {
-                DOUBLE_QUOTE => mode = Mode::StringDQ,
-                SINGLE_QUOTE => mode = Mode::StringSQ,
+            IterMode::Normal => match cur {
+                DOUBLE_QUOTE => mode = IterMode::StringDQ,
+                SINGLE_QUOTE => mode = IterMode::StringSQ,
                 SUBQ_END => {
                     subquery_end = Some(idx);
                     if level == 0 {
-                        mode = Mode::Ended(idx)
+                        mode = IterMode::Ended(idx)
                     } else {
                         let rm_val = stack.pop().unwrap();
                         let v = tree.indices_map.get_mut(&rm_val).unwrap();
@@ -62,19 +64,20 @@ pub fn build_indexed_query_tree(query_str: &str) -> Result<QueryTree, ParseSubqu
                 }
                 _ => {}
             },
-            Mode::StringDQ => {
+            IterMode::StringDQ => {
                 if cur == DOUBLE_QUOTE {
-                    mode = Mode::Normal
+                    mode = IterMode::Normal
                 }
             }
-            Mode::StringSQ => {
+            IterMode::StringSQ => {
                 if cur == SINGLE_QUOTE {
-                    mode = Mode::Normal
+                    mode = IterMode::Normal
                 }
             }
-            Mode::Ended(end) => {
+            IterMode::Ended(end) => {
                 subquery_end = Some(end);
             }
+            _ => todo!("handle edge case: {:?}", mode),
         }
     }
     tree.clear_current_nodes();

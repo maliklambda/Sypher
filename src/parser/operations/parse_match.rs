@@ -2,16 +2,23 @@ use std::collections::HashMap;
 
 use crate::{
     constants::{
-        keywords::{condition::WHERE_STR, parse_match::RETURN_STR},
-        special_chars::{DOT, RETURN_VALUE_SEPARATOR, SPACE, parse_match::*},
+        keywords::{
+            conditions::{AND_STR, OR_STR, WHERE_STR},
+            parse_match::RETURN_STR,
+        },
+        special_chars::{
+            DOT, DOUBLE_QUOTE, RETURN_VALUE_SEPARATOR, SINGLE_QUOTE, SPACE, parse_match::*,
+        },
     },
     parser::{
         errors::{ParseErrorReason, ParseMatchError, ParseMatchErrorReason, ParseQueryError},
         objects::parse_match::{
-            FilterCondition, IdentifierData, MatchObject, MatchQO, RelationshipDirection,
-            ReturnValue,
+            Connector, FilterCondition, IdentifierData, MatchObject, MatchQO,
+            RelationshipDirection, ReturnValue,
         },
+        operations::conditions::{ConditionTree, parse_conditions},
         query::Query,
+        subqueries::build_subqueries::IterMode,
     },
     types::IdentifierName,
 };
@@ -29,15 +36,17 @@ pub fn parse_match(query: &mut Query) -> Result<MatchQO, ParseQueryError> {
     println!("Parsed match objects: {:?}", match_objects);
 
     // parse conditions
-    let conditions_str = query.to_next_str(RETURN_STR).ok_or(ParseQueryError::new(
-        ParseErrorReason::MissingKeyword {
-            expected: RETURN_STR.to_string(),
-        },
-    ))?;
-    println!("conditions: {conditions_str}");
-    let filters = parse_conditions(conditions_str)?;
+    println!("query: {}", query.current);
+    let condition_tree = parse_conditions(query)?;
+    println!("filters: {:?}", condition_tree);
+    println!("query after parsing conditions: {query}");
 
     // parse return values
+    if query.trim_left_str(RETURN_STR).is_none() {
+        return Err(ParseQueryError::new(ParseErrorReason::MissingKeyword {
+            expected: RETURN_STR.to_string(),
+        }));
+    }
     let return_values_str = query.to_end();
     println!("return values: {return_values_str}");
     let return_values = parse_return_values(return_values_str)?;
@@ -48,7 +57,7 @@ pub fn parse_match(query: &mut Query) -> Result<MatchQO, ParseQueryError> {
 
     Ok(MatchQO {
         match_objects,
-        filters,
+        condition_tree,
         return_values,
     })
 }
@@ -164,22 +173,30 @@ fn parse_relationship(query: &mut Query) -> Result<MatchObject, ParseMatchError>
 fn parse_ingoing_rel(pattern: &mut Query) -> Result<MatchObject, ParseMatchError> {
     println!("parsing ingoing rel");
     pattern.trim_left_str(MATCH_REL_DIRECTION_LEFT).unwrap();
-    match pattern.current {
+    let (id_name, type_name) = match pattern.current {
         s if s.starts_with(MATCH_REL_START) => {
-            // normal relationship
-            println!("normal rel")
+            // normal relationship: <-[]-
+            println!("normal rel");
+            let (id_name, type_name) =
+                parse_rel_name_type(pattern, MATCH_REL_TAIL.to_string().as_str())?;
+            let id_name = id_name.replace(MATCH_REL_START, "");
+            let type_name = type_name.replace([MATCH_REL_START, MATCH_REL_END], "");
+            (id_name, type_name)
         }
         s if s.starts_with(MATCH_NODE_START) => {
-            // simple relationship
-            println!("simple rel")
+            // simple relationship: <-
+            println!("simple rel");
+            let id_name = pattern.generate_uuid();
+            (id_name.to_string(), "".to_string())
         }
-        _ => println!("syntax error!"),
-    }
-    // todo!("{}", pattern);
-    let (id_name, type_name) = parse_rel_name_type(pattern, MATCH_REL_TAIL.to_string().as_str())?;
-    let id_name = id_name.replace(MATCH_REL_START, "");
-    let type_name = type_name.replace([MATCH_REL_START, MATCH_REL_END], "");
-    println!("Pattern after parsing ingoing rels: {pattern}");
+        _ => {
+            return Err(ParseMatchError::new(
+                ParseMatchErrorReason::BadRelationship,
+                pattern.current.to_string(),
+            ));
+        }
+    };
+
     Ok(MatchObject {
         name: id_name,
         object_type: type_name,
@@ -222,12 +239,18 @@ fn parse_rel_name_type<'a>(
     query: &'a mut Query,
     end_str: &str,
 ) -> Result<(&'a str /*name*/, &'a str /*type*/), ParseMatchError> {
-    let content = query.to_next_str(end_str).unwrap();
+    let pattern = query.current.to_string();
+    let content = query.to_next_str(end_str).ok_or(ParseMatchError::new(
+        ParseMatchErrorReason::ParseNameType,
+        pattern,
+    ))?;
     let p = content.find(MATCH_TYPE_SEPARATOR);
     match p {
-        Some(idx) => Ok((&content[..idx], &content[idx+1..])),
-        None => Ok(("generate_unique_id", content)), // TODO: generate unique relationship name
-        // None => Ok((query.generate_uuid(), content)),
+        Some(idx) => Ok((&content[..idx], &content[idx + 1..])),
+        None => {
+            println!("Did not find {MATCH_TYPE_SEPARATOR} in {content}");
+            Ok(("todo: generate node name", content)) // TODO: generate unique relationship name
+        }
     }
 }
 
@@ -263,17 +286,13 @@ fn parse_return_values(s: &str) -> Result<Vec<ReturnValue>, ParseMatchError> {
     Ok(values)
 }
 
-fn parse_conditions(_conditions_str: &str) -> Result<Vec<FilterCondition>, ParseMatchError> {
-    // todo!("parse conditions");
-    Ok(vec![])
-}
-
 fn validate_return_values(
     return_values: &Vec<ReturnValue>,
     match_objects: &HashMap<IdentifierName, MatchObject>,
 ) -> Result<(), ParseMatchError> {
     println!("match objects: {:?}", match_objects);
     for val in return_values {
+        println!("keys: {:?}", match_objects.keys());
         if !match_objects.contains_key(&val.identifier_name) {
             return Err(ParseMatchError::new(
                 ParseMatchErrorReason::UnknownIdentifierInReturnValues {
