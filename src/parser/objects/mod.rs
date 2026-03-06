@@ -189,6 +189,9 @@ pub mod parse_match {
     }
 
     impl FilterCondition {
+        pub fn new(cmp: ComparisonOperator, lh: String, rh: String) -> Self {
+            Self {comparison_operator: cmp, left_side: lh, right_side: rh}
+        }
         pub fn true_condition() -> FilterCondition {
             Self {
                 left_side: "".to_string(),
@@ -209,7 +212,9 @@ pub mod parse_match {
     pub enum ComparisonOperator {
         Equal,
         GreaterThan,
-        LessThan,
+        GreaterEqual,
+        SmallerThan,
+        SmallerEqual,
     }
 
     #[derive(Debug, PartialEq, Clone)]

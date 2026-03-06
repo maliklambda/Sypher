@@ -24,22 +24,16 @@ use crate::{
 };
 
 pub fn parse_match(query: &mut Query) -> Result<MatchQO, ParseQueryError> {
-    println!("query: {query}");
     // parse pattern
     let pattern = query.to_next_str(WHERE_STR).ok_or(ParseQueryError::new(
         ParseErrorReason::MissingKeyword {
             expected: WHERE_STR.to_string(),
         },
     ))?;
-    println!("pattern: {pattern}");
     let match_objects = parse_pattern(pattern)?;
-    println!("Parsed match objects: {:?}", match_objects);
 
     // parse conditions
-    println!("query: {}", query.current);
     let condition_tree = parse_conditions(query)?;
-    println!("filters: {:?}", condition_tree);
-    println!("query after parsing conditions: {query}");
 
     // parse return values
     if query.trim_left_str(RETURN_STR).is_none() {
@@ -47,11 +41,9 @@ pub fn parse_match(query: &mut Query) -> Result<MatchQO, ParseQueryError> {
             expected: RETURN_STR.to_string(),
         }));
     }
-    let return_values_str = query.to_end();
-    println!("return values: {return_values_str}");
-    let return_values = parse_return_values(return_values_str)?;
+    let return_values = parse_return_values(query)?;
     validate_return_values(&return_values, &match_objects).map_err(|mut err| {
-        err.pattern = return_values_str.to_string();
+        err.pattern = query.current.to_string();
         ParseQueryError::new(ParseErrorReason::ParseMatchError(err))
     })?;
 
@@ -261,7 +253,8 @@ fn alphabetic_chars_only(input: &str) -> String {
         .collect::<String>()
 }
 
-fn parse_return_values(s: &str) -> Result<Vec<ReturnValue>, ParseMatchError> {
+fn parse_return_values(query: &mut Query) -> Result<Vec<ReturnValue>, ParseMatchError> {
+    let s = query.to_end();
     let s = s.replace(SPACE, "");
     let mut values: Vec<ReturnValue> = vec![];
     for val in s.split(RETURN_VALUE_SEPARATOR) {

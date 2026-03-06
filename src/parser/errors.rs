@@ -1,5 +1,10 @@
 use std::num::ParseIntError;
 
+use crate::constants::{
+    self,
+    keywords::conditions::{CONDITION_GROUP_END, CONDITION_GROUP_START},
+};
+
 #[derive(Debug, Clone)]
 pub struct ParseQueryError {
     pub reason: ParseErrorReason,
@@ -225,12 +230,21 @@ impl ParseMatchError {
     }
 }
 
+impl From<ParseConditionsError> for ParseMatchError {
+    fn from(value: ParseConditionsError) -> Self {
+        ParseMatchError {
+            reason: ParseMatchErrorReason::ParseConditions { err: value.reason },
+            pattern: value.pattern,
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum ParseMatchErrorReason {
     StartWithoutNode,
     ParseNameType,
     BadRelationship,
-    ParseConditions { err: ParseConditionsError },
+    ParseConditions { err: ParseConditionsErrorReason },
     ParseReturnValues,
     UnknownIdentifierInReturnValues { unknown: String },
 }
@@ -270,7 +284,49 @@ pub enum ParseSubqueryErrorReason {
 }
 
 #[derive(Debug, PartialEq, Clone)]
-pub enum ParseConditionsError {
+pub struct ParseConditionsError {
+    reason: ParseConditionsErrorReason,
+    pattern: String,
+}
+
+impl ParseConditionsError {
+    pub fn new(reason: ParseConditionsErrorReason, pattern: String) -> Self {
+        Self { reason, pattern }
+    }
+}
+
+impl std::error::Error for ParseConditionsError {}
+impl std::fmt::Display for ParseConditionsError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self.reason {
+            ParseConditionsErrorReason::UnclosedGroupStart => write!(
+                f,
+                "Parsing conditions failed: Unclosed '{}' for pattern '{}'",
+                CONDITION_GROUP_START, self.pattern
+            ),
+            ParseConditionsErrorReason::UnclosedGroupEnd => write!(
+                f,
+                "Parsing conditions failed: Unclosed '{}' for pattern '{}'",
+                CONDITION_GROUP_END, self.pattern
+            ),
+            ParseConditionsErrorReason::LeftHandQuotes => write!(
+                f,
+                "Parsing conditions failed: Left hand quotes are not allowed. But found in pattern '{}'",
+                self.pattern
+            ),
+            ParseConditionsErrorReason::MissingOperator => write!(
+                f,
+                "Parsing conditions failed due to missign operator for pattern '{}'",
+                self.pattern
+            ),
+        }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum ParseConditionsErrorReason {
     UnclosedGroupStart,
     UnclosedGroupEnd,
+    LeftHandQuotes,
+    MissingOperator,
 }

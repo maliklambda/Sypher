@@ -68,6 +68,12 @@ pub mod special_chars {
         pub const SUBQ_END: char = '}';
     }
 
+    pub mod conditions_chars {
+        pub const GREATER_THAN: char = '>';
+        pub const SMALLER_THAN: char = '<';
+        pub const EQUAL: char = '=';
+    }
+
     // MATCH
     pub mod parse_match {
         pub const MATCH_NODE_START: char = '(';

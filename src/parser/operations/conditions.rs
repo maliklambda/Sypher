@@ -1,6 +1,5 @@
 use std::{
     cell::RefCell,
-    collections::VecDeque,
     rc::{Rc, Weak},
 };
 
@@ -10,11 +9,14 @@ use crate::{
             conditions::{AND_STR, CONDITION_GROUP_END, CONDITION_GROUP_START, OR_STR},
             parse_match::RETURN_STR,
         },
-        special_chars::{DOUBLE_QUOTE, SINGLE_QUOTE},
+        special_chars::{
+            DOUBLE_QUOTE, SINGLE_QUOTE,
+            conditions_chars::{EQUAL, GREATER_THAN, SMALLER_THAN},
+        },
     },
     parser::{
-        errors::ParseMatchError,
-        objects::parse_match::{Connector, FilterCondition},
+        errors::{ParseConditionsError, ParseMatchError, ParseConditionsErrorReason},
+        objects::parse_match::{ComparisonOperator, Connector, FilterCondition},
         query::Query,
         subqueries::build_subqueries::IterMode,
     },
@@ -40,7 +42,7 @@ impl Iterator for ConditionTree {
 
 impl PartialEq for ConditionTree {
     fn eq(&self, other: &Self) -> bool {
-         std::ptr::eq(self, other)
+        std::ptr::eq(self, other)
     }
 }
 
@@ -49,20 +51,32 @@ pub type WeakNodePtr = Weak<RefCell<Node>>;
 
 #[derive(Debug)]
 pub struct Node {
-    pub condition: String,
+    pub condition: FilterCondition,
     pub parent: Option<WeakNodePtr>,
     pub and: Option<NodePtr>,
     pub or: Option<NodePtr>,
 }
 
 impl Node {
-    pub fn new(fc: String) -> Self {
+    pub fn new(fc: FilterCondition) -> Self {
         Self {
             condition: fc,
             parent: None,
             and: None,
             or: None,
         }
+    }
+
+    pub fn from_condition_vec(
+        condition_vec: &Vec<char>,
+    ) -> Result<Rc<RefCell<Self>>, ParseMatchError> {
+        let condition = parse_single_condition(condition_vec.iter().collect())?;
+        Ok(Rc::new(RefCell::new(Self {
+            condition,
+            parent: None,
+            and: None,
+            or: None,
+        })))
     }
 
     pub fn add_child(parent: &NodePtr, child: &NodePtr, connector: Connector) {
@@ -80,9 +94,8 @@ impl Node {
 }
 
 pub fn parse_conditions(query: &mut Query) -> Result<ConditionTree, ParseMatchError> {
-    let mut filter_conditions: Vec<(Vec<char>, Connector)> = vec![];
     let mut mode = IterMode::Normal;
-    let root = Rc::new(RefCell::new(Node::new("ROOT".to_string())));
+    let root = Rc::new(RefCell::new(Node::new(FilterCondition::true_condition())));
     let mut s: Vec<NodePtr> = vec![Rc::clone(&root)];
     let mut connector_cur = Connector::And;
     let mut level = 0;
@@ -95,40 +108,43 @@ pub fn parse_conditions(query: &mut Query) -> Result<ConditionTree, ParseMatchEr
                     // AND / OR => parse_single_condition && start new conditions_str
                     'A' if &query.current[idx..idx + AND_STR.len()] == AND_STR => {
                         println!("Finished condition: {:?}", cond_cur);
-                        let new_node = Rc::new(RefCell::new(Node::new(cond_cur.iter().collect())));
+                        let new_node = Node::from_condition_vec(&cond_cur)?;
                         let current_node = s.last().unwrap();
                         Node::add_child(current_node, &new_node, connector_cur);
                         s.push(Rc::clone(&new_node));
 
-                        filter_conditions.push((cond_cur.clone(), connector_cur));
                         connector_cur = Connector::And;
                         mode = IterMode::Skip(AND_STR.len() - 1);
                         cond_cur.clear();
                     }
                     'O' if &query.current[idx..idx + OR_STR.len()] == OR_STR => {
                         println!("Finished condition: {:?}", cond_cur);
-                        let new_node = Rc::new(RefCell::new(Node::new(cond_cur.iter().collect())));
+                        let new_node = Node::from_condition_vec(&cond_cur)?;
                         let current_node = s.last().unwrap();
                         Node::add_child(current_node, &new_node, connector_cur);
                         s.push(Rc::clone(&new_node));
 
-                        filter_conditions.push((cond_cur.clone(), connector_cur));
                         connector_cur = Connector::Or;
                         mode = IterMode::Skip(OR_STR.len() - 1);
                         cond_cur.clear();
                     }
                     'R' if &query.current[idx..idx + RETURN_STR.len()] == RETURN_STR => {
                         println!("Finished condition: {:?}", cond_cur);
-                        let new_node = Rc::new(RefCell::new(Node::new(cond_cur.iter().collect())));
+                        let new_node = Node::from_condition_vec(&cond_cur)?;
                         let current_node = s.last().unwrap();
                         Node::add_child(current_node, &new_node, connector_cur);
                         s.push(Rc::clone(&new_node));
 
-                        filter_conditions.push((cond_cur.clone(), connector_cur));
                         mode = IterMode::Ended(idx)
                     }
-                    SINGLE_QUOTE => mode = IterMode::StringSQ,
-                    DOUBLE_QUOTE => mode = IterMode::StringDQ,
+                    SINGLE_QUOTE => {
+                        mode = IterMode::StringSQ;
+                        cond_cur.push(c);
+                    },
+                    DOUBLE_QUOTE => {
+                        mode = IterMode::StringDQ;
+                        cond_cur.push(c);
+                    },
                     CONDITION_GROUP_START => {
                         level += 1;
                         println!("Incrementing condition level to {level}");
@@ -136,7 +152,7 @@ pub fn parse_conditions(query: &mut Query) -> Result<ConditionTree, ParseMatchEr
                     CONDITION_GROUP_END => {
                         if level <= 0 {
                             return Err(ParseMatchError::new(
-                                crate::parser::errors::ParseMatchErrorReason::ParseConditions {err: crate::parser::errors::ParseConditionsError::UnclosedGroupStart},
+                                crate::parser::errors::ParseMatchErrorReason::ParseConditions { err: ParseConditionsErrorReason::UnclosedGroupEnd },
                                 query.current.to_string(),
                             ));
                         }
@@ -184,16 +200,61 @@ pub fn parse_conditions(query: &mut Query) -> Result<ConditionTree, ParseMatchEr
     if level > 0 {
         return Err(ParseMatchError::new(
             crate::parser::errors::ParseMatchErrorReason::ParseConditions {
-                err: crate::parser::errors::ParseConditionsError::UnclosedGroupEnd,
+                err: ParseConditionsErrorReason::UnclosedGroupEnd,
             },
             query.current.to_string(),
         ));
     }
 
-    println!("conditions: {:?}", filter_conditions);
     Ok(ConditionTree::new(root))
 }
 
-pub fn parse_single_condition(v: Vec<char>) -> Result<FilterCondition, ParseMatchError> {
-    todo!("parse single condition");
+pub fn parse_single_condition(s: String) -> Result<FilterCondition, ParseMatchError> {
+    println!("single cond: {s}");
+    let (operator, op_idcs) = find_operator(&s)?;
+    println!("operator: {:?}", operator);
+    let lh = &s[..op_idcs.start].trim();
+    println!("Found lh = <{lh}>");
+    let rh = &s[op_idcs.start + op_idcs.length..].trim();
+    println!("Found rh = <{rh}>");
+    Ok(FilterCondition::new(operator, lh.to_string(), rh.to_string()))
+}
+
+fn find_operator(s: &str) -> Result<(ComparisonOperator, OperatorIdcs), ParseConditionsError> {
+    for (idx, c) in s.chars().enumerate() {
+        match c {
+            GREATER_THAN => {
+                // check for >=
+                if s.chars().nth(idx + 1).unwrap() == EQUAL {
+                    return Ok((ComparisonOperator::GreaterEqual, OperatorIdcs::new(idx, 2)));
+                } else {
+                    return Ok((ComparisonOperator::SmallerThan, OperatorIdcs::new(idx, 1)));
+                }
+            }
+            SMALLER_THAN => {
+                // check for <=
+                if s.chars().nth(idx + 1).unwrap() == EQUAL {
+                    return Ok((ComparisonOperator::SmallerEqual, OperatorIdcs::new(idx, 2)));
+                } else {
+                    return Ok((ComparisonOperator::SmallerThan, OperatorIdcs::new(idx, 1)));
+                }
+            }
+            EQUAL => return Ok((ComparisonOperator::Equal, OperatorIdcs::new(idx, 1))),
+            DOUBLE_QUOTE => return Err(ParseConditionsError::new(ParseConditionsErrorReason::LeftHandQuotes, s.to_string())),
+            SINGLE_QUOTE => return Err(ParseConditionsError::new(ParseConditionsErrorReason::LeftHandQuotes, s.to_string())),
+            _ => {}
+        }
+    }
+    Err(ParseConditionsError::new(ParseConditionsErrorReason::MissingOperator, s.to_string()))
+}
+
+pub struct OperatorIdcs {
+    start: usize,
+    length: usize,
+}
+
+impl OperatorIdcs {
+    pub fn new(start: usize, length: usize) -> Self {
+        Self { start, length }
+    }
 }
