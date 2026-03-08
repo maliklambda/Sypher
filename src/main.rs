@@ -8,6 +8,7 @@ mod types;
 fn main() {
     let example_query = examples::MATCH_SIMPLE_INGOING;
     let query = Query::from_str(example_query);
+
     match parse_query(query) {
         Ok(result) => println!("Query parsed successfully. Query object: {:?}", result),
         Err(err) => println!("Error parsing query: {:?}", err),
