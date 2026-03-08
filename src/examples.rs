@@ -17,9 +17,9 @@ macro_rules! define_constants {
 
 define_constants![
     MATCH_CONDITIONS_GROUPED = "MATCH (p:) <- (f:Food) WHERE (p.name = 'name' AND p.age = 23) OR p.age = 56 RETURN p.name, f.cuisine",
-    MATCH_CONDITIONS = "MATCH (p:) <- (f:Food) WHERE p.name = 'Edos' AND p.age > 23 OR p.id <= 500 RETURN p.name, f.cuisine",
+    MATCH_CONDITIONS = "MATCH (p:) <- (f:Food) WHERE p.name = 'Edos' AND p.age > 23 OR p.balance >= 500.00 AND p.debt < -34.0 RETURN p.name, f.cuisine",
     MATCH_SIMPLE_INGOING =
-        "MATCH (p) <- (f:Food) WHERE p.name = 'some_name' RETURN p.name, f.cuisine",
+        "MATCH (p:) <- (f:Food) WHERE p.name = 'some_name' RETURN p.name, f.cuisine",
     MATCH_SIMPLE_OUTGOING =
         "MATCH (p:Person) -> (f:Food) WHERE p.name = 'some_name' RETURN p.name, f.cuisine",
     MATCH_INGOING = "MATCH (food:Food) <-[r:LIKES]- (person:Person) WHERE person.name = 'Edos' RETURN person.age, foods.name",

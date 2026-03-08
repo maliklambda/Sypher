@@ -15,8 +15,9 @@ use crate::{
         },
     },
     parser::{
-        errors::{ParseConditionsError, ParseMatchError, ParseConditionsErrorReason},
+        errors::{ParseConditionsError, ParseConditionsErrorReason, ParseMatchError},
         objects::parse_match::{ComparisonOperator, Connector, FilterCondition},
+        operations::expressions::parse_expression,
         query::Query,
         subqueries::build_subqueries::IterMode,
     },
@@ -140,11 +141,11 @@ pub fn parse_conditions(query: &mut Query) -> Result<ConditionTree, ParseMatchEr
                     SINGLE_QUOTE => {
                         mode = IterMode::StringSQ;
                         cond_cur.push(c);
-                    },
+                    }
                     DOUBLE_QUOTE => {
                         mode = IterMode::StringDQ;
                         cond_cur.push(c);
-                    },
+                    }
                     CONDITION_GROUP_START => {
                         level += 1;
                         println!("Incrementing condition level to {level}");
@@ -152,7 +153,9 @@ pub fn parse_conditions(query: &mut Query) -> Result<ConditionTree, ParseMatchEr
                     CONDITION_GROUP_END => {
                         if level <= 0 {
                             return Err(ParseMatchError::new(
-                                crate::parser::errors::ParseMatchErrorReason::ParseConditions { err: ParseConditionsErrorReason::UnclosedGroupEnd },
+                                crate::parser::errors::ParseMatchErrorReason::ParseConditions {
+                                    err: ParseConditionsErrorReason::UnclosedGroupEnd,
+                                },
                                 query.current.to_string(),
                             ));
                         }
@@ -214,10 +217,13 @@ pub fn parse_single_condition(s: String) -> Result<FilterCondition, ParseMatchEr
     let (operator, op_idcs) = find_operator(&s)?;
     println!("operator: {:?}", operator);
     let lh = &s[..op_idcs.start].trim();
-    println!("Found lh = <{lh}>");
+    let lh_expr = parse_expression(lh)?;
+    println!("Found lh = <{:?}>", lh_expr);
+
     let rh = &s[op_idcs.start + op_idcs.length..].trim();
-    println!("Found rh = <{rh}>");
-    Ok(FilterCondition::new(operator, lh.to_string(), rh.to_string()))
+    let rh_expr = parse_expression(rh)?;
+    println!("Found rh = <{:?}>", rh_expr);
+    Ok(FilterCondition::new(operator, lh_expr, rh_expr))
 }
 
 fn find_operator(s: &str) -> Result<(ComparisonOperator, OperatorIdcs), ParseConditionsError> {
@@ -228,7 +234,7 @@ fn find_operator(s: &str) -> Result<(ComparisonOperator, OperatorIdcs), ParseCon
                 if s.chars().nth(idx + 1).unwrap() == EQUAL {
                     return Ok((ComparisonOperator::GreaterEqual, OperatorIdcs::new(idx, 2)));
                 } else {
-                    return Ok((ComparisonOperator::SmallerThan, OperatorIdcs::new(idx, 1)));
+                    return Ok((ComparisonOperator::GreaterThan, OperatorIdcs::new(idx, 1)));
                 }
             }
             SMALLER_THAN => {
@@ -240,12 +246,25 @@ fn find_operator(s: &str) -> Result<(ComparisonOperator, OperatorIdcs), ParseCon
                 }
             }
             EQUAL => return Ok((ComparisonOperator::Equal, OperatorIdcs::new(idx, 1))),
-            DOUBLE_QUOTE => return Err(ParseConditionsError::new(ParseConditionsErrorReason::LeftHandQuotes, s.to_string())),
-            SINGLE_QUOTE => return Err(ParseConditionsError::new(ParseConditionsErrorReason::LeftHandQuotes, s.to_string())),
+            DOUBLE_QUOTE => {
+                return Err(ParseConditionsError::new(
+                    ParseConditionsErrorReason::LeftHandQuotes,
+                    s.to_string(),
+                ));
+            }
+            SINGLE_QUOTE => {
+                return Err(ParseConditionsError::new(
+                    ParseConditionsErrorReason::LeftHandQuotes,
+                    s.to_string(),
+                ));
+            }
             _ => {}
         }
     }
-    Err(ParseConditionsError::new(ParseConditionsErrorReason::MissingOperator, s.to_string()))
+    Err(ParseConditionsError::new(
+        ParseConditionsErrorReason::MissingOperator,
+        s.to_string(),
+    ))
 }
 
 pub struct OperatorIdcs {

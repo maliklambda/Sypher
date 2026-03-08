@@ -132,7 +132,13 @@ pub mod get {
 pub mod parse_match {
     use std::collections::HashMap;
 
-    use crate::{parser::operations::conditions::ConditionTree, types::IdentifierName};
+    use crate::{
+        parser::operations::{
+            conditions::ConditionTree,
+            expressions::{ConstantExpression, Expression, SimpleExpression},
+        },
+        types::IdentifierName,
+    };
 
     #[derive(Debug, PartialEq, Clone)]
     pub struct MatchQO {
@@ -150,13 +156,13 @@ pub mod parse_match {
 
     impl MatchObject {
         pub fn new(
-            name: Option<IdentifierName>,
-            type_name: Option<String>,
+            name: IdentifierName,
+            type_name: String,
             data: IdentifierData,
         ) -> Self {
             MatchObject {
-                name: name.unwrap_or(todo!("Generate name")),
-                object_type: type_name.unwrap_or(todo!("Generate type name")),
+                name,
+                object_type: type_name,
                 data,
             }
         }
@@ -183,27 +189,34 @@ pub mod parse_match {
 
     #[derive(Debug, PartialEq, Clone)]
     pub struct FilterCondition {
-        left_side: String,
+        left_side: Expression,
         comparison_operator: ComparisonOperator,
-        right_side: String,
+        right_side: Expression,
     }
 
     impl FilterCondition {
-        pub fn new(cmp: ComparisonOperator, lh: String, rh: String) -> Self {
-            Self {comparison_operator: cmp, left_side: lh, right_side: rh}
+        pub fn new(cmp: ComparisonOperator, lh: Expression, rh: Expression) -> Self {
+            Self {
+                comparison_operator: cmp,
+                left_side: lh,
+                right_side: rh,
+            }
         }
         pub fn true_condition() -> FilterCondition {
             Self {
-                left_side: "".to_string(),
+                left_side: Expression::Simple(SimpleExpression::Constant(
+                    ConstantExpression::Int32(0),
+                )),
                 comparison_operator: ComparisonOperator::Equal,
-                right_side: "".to_string(),
+                right_side: Expression::Simple(SimpleExpression::Constant(
+                    ConstantExpression::Int32(0),
+                )),
             }
         }
     }
 
     #[derive(Debug, PartialEq, Clone, Copy)]
     pub enum Connector {
-        Root,
         And,
         Or,
     }

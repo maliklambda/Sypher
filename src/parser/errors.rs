@@ -210,6 +210,13 @@ impl std::fmt::Display for ParseMatchError {
                     err, self.pattern
                 )
             }
+            ParseMatchErrorReason::ParseExpression { err: err } => {
+                write!(
+                    f,
+                    "Parsing expression failed due to {:?} for pattern: {}",
+                    err, self.pattern
+                )
+            }
             ParseMatchErrorReason::ParseReturnValues => write!(
                 f,
                 "Parsing return values failed for pattern: {}",
@@ -239,12 +246,22 @@ impl From<ParseConditionsError> for ParseMatchError {
     }
 }
 
+impl From<ExpressionError> for ParseMatchError {
+    fn from(value: ExpressionError) -> Self {
+        ParseMatchError {
+            reason: ParseMatchErrorReason::ParseExpression { err: value.reason },
+            pattern: value.pattern,
+        }
+    }
+}
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum ParseMatchErrorReason {
     StartWithoutNode,
     ParseNameType,
     BadRelationship,
     ParseConditions { err: ParseConditionsErrorReason },
+    ParseExpression { err: ExpressionErrorReason },
     ParseReturnValues,
     UnknownIdentifierInReturnValues { unknown: String },
 }
@@ -329,4 +346,24 @@ pub enum ParseConditionsErrorReason {
     UnclosedGroupEnd,
     LeftHandQuotes,
     MissingOperator,
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub struct ExpressionError {
+    reason: ExpressionErrorReason,
+    pattern: String,
+}
+
+impl ExpressionError {
+    pub fn new(reason: ExpressionErrorReason, pattern: String) -> Self {
+        Self { reason, pattern }
+    }
+}
+
+#[derive(Debug, PartialEq, Clone)]
+pub enum ExpressionErrorReason {
+    MissingExpectedChar(char),
+    PropertyOfProperty,
+    ParseConstant,
+    InvalidConstant,
 }

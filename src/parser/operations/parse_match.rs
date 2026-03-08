@@ -2,23 +2,16 @@ use std::collections::HashMap;
 
 use crate::{
     constants::{
-        keywords::{
-            conditions::{AND_STR, OR_STR, WHERE_STR},
-            parse_match::RETURN_STR,
-        },
-        special_chars::{
-            DOT, DOUBLE_QUOTE, RETURN_VALUE_SEPARATOR, SINGLE_QUOTE, SPACE, parse_match::*,
-        },
+        keywords::{conditions::WHERE_STR, parse_match::RETURN_STR},
+        special_chars::{DOT, RETURN_VALUE_SEPARATOR, SPACE, parse_match::*},
     },
     parser::{
         errors::{ParseErrorReason, ParseMatchError, ParseMatchErrorReason, ParseQueryError},
         objects::parse_match::{
-            Connector, FilterCondition, IdentifierData, MatchObject, MatchQO,
-            RelationshipDirection, ReturnValue,
+            IdentifierData, MatchObject, MatchQO, RelationshipDirection, ReturnValue
         },
-        operations::conditions::{ConditionTree, parse_conditions},
+        operations::conditions::parse_conditions,
         query::Query,
-        subqueries::build_subqueries::IterMode,
     },
     types::IdentifierName,
 };
@@ -134,15 +127,15 @@ fn parse_node(query: &mut Query) -> Result<MatchObject, ParseMatchError> {
         })?;
 
     let (id_name, type_name) = parse_rel_name_type(query, MATCH_NODE_END.to_string().as_str())?;
-
-    Ok(MatchObject {
-        name: id_name.to_string(),
-        object_type: type_name.to_string(),
-        data: IdentifierData::Node {
-            outgoing: None,
-            ingoing: None,
-        },
-    })
+    Ok(MatchObject::new(
+        id_name.to_string(),
+        type_name.to_string(), 
+        IdentifierData::Relationship {
+            start: None,
+            end: None,
+            direction: RelationshipDirection::Ingoing,
+        }
+    ))
 }
 
 fn parse_relationship(query: &mut Query) -> Result<MatchObject, ParseMatchError> {
@@ -177,9 +170,10 @@ fn parse_ingoing_rel(pattern: &mut Query) -> Result<MatchObject, ParseMatchError
         }
         s if s.starts_with(MATCH_NODE_START) => {
             // simple relationship: <-
-            println!("simple rel");
-            let id_name = pattern.generate_uuid();
-            (id_name.to_string(), "".to_string())
+            println!("simple ingoing rel");
+            let id_name = {pattern.generate_uuid()}.to_string();
+            let type_name = {pattern.generate_uuid()}.to_string();
+            (id_name, type_name)
         }
         _ => {
             return Err(ParseMatchError::new(
@@ -189,15 +183,15 @@ fn parse_ingoing_rel(pattern: &mut Query) -> Result<MatchObject, ParseMatchError
         }
     };
 
-    Ok(MatchObject {
-        name: id_name,
-        object_type: type_name,
-        data: IdentifierData::Relationship {
+    Ok(MatchObject::new(
+        id_name,
+        type_name, 
+        IdentifierData::Relationship {
             start: None,
             end: None,
             direction: RelationshipDirection::Ingoing,
         },
-    })
+    ))
 }
 
 /*
@@ -217,8 +211,8 @@ fn parse_outgoing_rel(pattern: &mut Query) -> Result<MatchObject, ParseMatchErro
 
     println!("Pattern after parsing outgoing rels: {pattern}");
     Ok(MatchObject::new(
-        Some(id_name),
-        Some(type_name),
+        id_name,
+        type_name,
         IdentifierData::Relationship {
             start: None,
             end: None,
@@ -244,13 +238,6 @@ fn parse_rel_name_type<'a>(
             Ok(("todo: generate node name", content)) // TODO: generate unique relationship name
         }
     }
-}
-
-fn alphabetic_chars_only(input: &str) -> String {
-    input
-        .chars()
-        .filter(|c| c.is_alphabetic())
-        .collect::<String>()
 }
 
 fn parse_return_values(query: &mut Query) -> Result<Vec<ReturnValue>, ParseMatchError> {

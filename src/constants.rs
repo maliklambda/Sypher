@@ -68,6 +68,19 @@ pub mod special_chars {
         pub const SUBQ_END: char = '}';
     }
 
+    pub mod arithmetic {
+        pub const PLUS: char = '+';
+        pub const MINUS: char = '-';
+        pub const MULTIPLY: char = '*';
+        pub const DIVIDE: char = '/';
+        pub const MODULO: char = '%';
+    }
+
+    pub mod pattern {
+        pub const PATTERN_START: char = '{';
+        pub const PATTERN_END: char = '}';
+    }
+
     pub mod conditions_chars {
         pub const GREATER_THAN: char = '>';
         pub const SMALLER_THAN: char = '<';

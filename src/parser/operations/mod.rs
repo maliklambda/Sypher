@@ -1,5 +1,7 @@
 pub mod add;
+pub mod aggregations;
 pub mod conditions;
+pub mod expressions;
 pub mod get;
 pub mod ops;
 pub mod parse_match;

@@ -12,7 +12,7 @@ pub type SubqueryIndex = usize;
 pub struct QueryTree {
     pub root: Rc<RefCell<TreeNode>>,
     pub current_nodes: Vec<Rc<RefCell<TreeNode>>>,
-    pub indices_map: HashMap<SubqueryIndex, Option<SubqueryPayload>>,
+    pub indices_map: HashMap<SubqueryIndex, Option<SubqueryPayload>>, // holds data about each node
     visited: Vec<SubqueryIndex>,
     queue: VecDeque<Rc<RefCell<TreeNode>>>,
     iter_started: bool, // used to remember state in impl Iterator
