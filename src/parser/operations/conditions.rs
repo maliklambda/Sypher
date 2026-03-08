@@ -26,18 +26,72 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct ConditionTree {
     root: NodePtr,
+
+    // variables for iterator trait
+    visited: Vec<NodePtr>,
 }
 
 impl ConditionTree {
     pub fn new(root: NodePtr) -> Self {
-        Self { root }
+        Self {
+            root,
+            visited: vec![],
+        }
     }
+
+    pub fn iter(&self) {
+        let stack = inorder_traverse(self.root.clone());
+        println!("stack after iteration: {:?}", stack);
+    }
+
+    fn get_andmost_node(&self) -> NodePtr {
+        let mut cur = self.root.clone();
+        loop {
+            let next = { cur.borrow().and.clone() };
+            if next.is_none() {
+                break;
+            }
+            cur = next.unwrap();
+        }
+        cur
+    }
+
+
 }
+
+pub struct PreorderIter <'a>{
+    stack: Vec<&'a Node>
+}
+
+fn inorder_traverse(tree: NodePtr) -> Vec<Node> {
+    let mut result: Vec<Node> = Vec::new();
+    inorder(Some(tree), &mut result);
+    result
+}
+
+fn inorder(tree: Option<NodePtr>, result: &mut Vec<Node>) -> Option<bool> {
+    if tree.is_none() { return None } // Return None if we reach a None value
+
+    let current_tree = tree.unwrap();
+    let current_value = current_tree.borrow().val.clone();
+
+    inorder(current_tree.to_owned().borrow().and.to_owned(),result);
+    result.push(current_value);
+    inorder(current_tree.to_owned().borrow().or.to_owned(),result);
+
+    Some(true) // This return doesn't matter but to maintain same return Type, Rust Specific Impl
+}
+
+
+
+
+
+
 
 impl Iterator for ConditionTree {
     type Item = NodePtr;
     fn next(&mut self) -> Option<Self::Item> {
-        todo!("implement iterator for conditiontree");
+        todo!("iterator for condtion tree")
     }
 }
 
@@ -47,37 +101,25 @@ impl PartialEq for ConditionTree {
     }
 }
 
-pub type NodePtr = Rc<RefCell<Node>>;
-pub type WeakNodePtr = Weak<RefCell<Node>>;
+pub type NodePtr = Rc<RefCell<NodeWrapper>>;
+pub type WeakNodePtr = Weak<RefCell<NodeWrapper>>;
 
 #[derive(Debug)]
-pub struct Node {
-    pub condition: FilterCondition,
-    pub parent: Option<WeakNodePtr>,
+pub struct NodeWrapper {
+    parent: Option<WeakNodePtr>,
     pub and: Option<NodePtr>,
     pub or: Option<NodePtr>,
+    pub val: Node,
 }
 
-impl Node {
-    pub fn new(fc: FilterCondition) -> Self {
-        Self {
-            condition: fc,
+impl NodeWrapper {
+    pub fn from_atom(atom: AtomNode) -> Rc<RefCell<Self>> {
+        Rc::new(RefCell::new(Self {
             parent: None,
             and: None,
             or: None,
-        }
-    }
-
-    pub fn from_condition_vec(
-        condition_vec: &Vec<char>,
-    ) -> Result<Rc<RefCell<Self>>, ParseMatchError> {
-        let condition = parse_single_condition(condition_vec.iter().collect())?;
-        Ok(Rc::new(RefCell::new(Self {
-            condition,
-            parent: None,
-            and: None,
-            or: None,
-        })))
+            val: Node::Atom(atom),
+        }))
     }
 
     pub fn add_child(parent: &NodePtr, child: &NodePtr, connector: Connector) {
@@ -92,11 +134,47 @@ impl Node {
             _ => panic!("Cannot add root node to existing node"),
         }
     }
+
+    pub fn has_and(&self) -> bool {
+        self.and.is_some()
+    }
+
+    pub fn has_or(&self) -> bool {
+        self.or.is_some()
+    }
+}
+
+#[derive(Debug, Clone)]
+pub enum Node {
+    Atom(AtomNode),
+    Tree(ConditionTree),
+}
+
+#[derive(Debug, Clone)]
+pub struct AtomNode {
+    pub condition: FilterCondition,
+}
+
+impl std::fmt::Display for AtomNode {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:?}", self.condition)
+    }
+}
+
+impl AtomNode {
+    pub fn new(fc: FilterCondition) -> Self {
+        Self { condition: fc }
+    }
+
+    pub fn from_condition_vec(condition_vec: &Vec<char>) -> Result<Self, ParseMatchError> {
+        let condition = parse_single_condition(condition_vec.iter().collect())?;
+        Ok(Self { condition })
+    }
 }
 
 pub fn parse_conditions(query: &mut Query) -> Result<ConditionTree, ParseMatchError> {
     let mut mode = IterMode::Normal;
-    let root = Rc::new(RefCell::new(Node::new(FilterCondition::true_condition())));
+    let root = NodeWrapper::from_atom(AtomNode::new(FilterCondition::true_condition()));
     let mut s: Vec<NodePtr> = vec![Rc::clone(&root)];
     let mut connector_cur = Connector::And;
     let mut level = 0;
@@ -109,9 +187,10 @@ pub fn parse_conditions(query: &mut Query) -> Result<ConditionTree, ParseMatchEr
                     // AND / OR => parse_single_condition && start new conditions_str
                     'A' if &query.current[idx..idx + AND_STR.len()] == AND_STR => {
                         println!("Finished condition: {:?}", cond_cur);
-                        let new_node = Node::from_condition_vec(&cond_cur)?;
+                        let new_node =
+                            NodeWrapper::from_atom(AtomNode::from_condition_vec(&cond_cur)?);
                         let current_node = s.last().unwrap();
-                        Node::add_child(current_node, &new_node, connector_cur);
+                        NodeWrapper::add_child(current_node, &new_node, connector_cur);
                         s.push(Rc::clone(&new_node));
 
                         connector_cur = Connector::And;
@@ -120,9 +199,10 @@ pub fn parse_conditions(query: &mut Query) -> Result<ConditionTree, ParseMatchEr
                     }
                     'O' if &query.current[idx..idx + OR_STR.len()] == OR_STR => {
                         println!("Finished condition: {:?}", cond_cur);
-                        let new_node = Node::from_condition_vec(&cond_cur)?;
+                        let new_node =
+                            NodeWrapper::from_atom(AtomNode::from_condition_vec(&cond_cur)?);
                         let current_node = s.last().unwrap();
-                        Node::add_child(current_node, &new_node, connector_cur);
+                        NodeWrapper::add_child(current_node, &new_node, connector_cur);
                         s.push(Rc::clone(&new_node));
 
                         connector_cur = Connector::Or;
@@ -131,9 +211,10 @@ pub fn parse_conditions(query: &mut Query) -> Result<ConditionTree, ParseMatchEr
                     }
                     'R' if &query.current[idx..idx + RETURN_STR.len()] == RETURN_STR => {
                         println!("Finished condition: {:?}", cond_cur);
-                        let new_node = Node::from_condition_vec(&cond_cur)?;
+                        let new_node =
+                            NodeWrapper::from_atom(AtomNode::from_condition_vec(&cond_cur)?);
                         let current_node = s.last().unwrap();
-                        Node::add_child(current_node, &new_node, connector_cur);
+                        NodeWrapper::add_child(current_node, &new_node, connector_cur);
                         s.push(Rc::clone(&new_node));
 
                         mode = IterMode::Ended(idx)

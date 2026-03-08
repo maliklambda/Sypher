@@ -155,11 +155,7 @@ pub mod parse_match {
     }
 
     impl MatchObject {
-        pub fn new(
-            name: IdentifierName,
-            type_name: String,
-            data: IdentifierData,
-        ) -> Self {
+        pub fn new(name: IdentifierName, type_name: String, data: IdentifierData) -> Self {
             MatchObject {
                 name,
                 object_type: type_name,

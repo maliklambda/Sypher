@@ -1,5 +1,3 @@
-
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Token {
     Atom(char),
@@ -12,7 +10,7 @@ pub struct Lexer {
 }
 
 impl Lexer {
-    pub fn new (input: &str) -> Lexer {
+    pub fn new(input: &str) -> Lexer {
         let mut tokens = input
             .chars()
             .filter(|c| !c.is_ascii_whitespace())
@@ -25,10 +23,10 @@ impl Lexer {
         Lexer { tokens }
     }
 
-    pub fn next (&mut self) -> Token {
+    pub fn next(&mut self) -> Token {
         self.tokens.pop().unwrap_or(Token::Eof)
     }
-    pub fn peek (&mut self) -> Token {
+    pub fn peek(&mut self) -> Token {
         self.tokens.last().copied().unwrap_or(Token::Eof)
     }
 }

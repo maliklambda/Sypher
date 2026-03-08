@@ -66,7 +66,9 @@ fn is_arithmetic_expr(expr_str: &str) -> bool {
     let arithmetic_operators = [PLUS, MINUS, MULTIPLY, DIVIDE, MODULO];
     if expr_str.starts_with(MINUS) {
         // might still be constant
-        return arithmetic_operators.iter().any(|ao| expr_str[1..].contains(*ao));
+        return arithmetic_operators
+            .iter()
+            .any(|ao| expr_str[1..].contains(*ao));
     }
     arithmetic_operators.iter().any(|ao| expr_str.contains(*ao))
 }
@@ -126,7 +128,10 @@ fn parse_simple_constant_expr(expr_str: &str) -> Result<ConstantExpression, Expr
     {
         parse_constant_number(expr_str)
     } else {
-        Err(ExpressionError::new(ExpressionErrorReason::InvalidConstant, expr_str.to_string()))
+        Err(ExpressionError::new(
+            ExpressionErrorReason::InvalidConstant,
+            expr_str.to_string(),
+        ))
     }
 }
 

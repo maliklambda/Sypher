@@ -8,7 +8,7 @@ use crate::{
     parser::{
         errors::{ParseErrorReason, ParseMatchError, ParseMatchErrorReason, ParseQueryError},
         objects::parse_match::{
-            IdentifierData, MatchObject, MatchQO, RelationshipDirection, ReturnValue
+            IdentifierData, MatchObject, MatchQO, RelationshipDirection, ReturnValue,
         },
         operations::conditions::parse_conditions,
         query::Query,
@@ -27,6 +27,8 @@ pub fn parse_match(query: &mut Query) -> Result<MatchQO, ParseQueryError> {
 
     // parse conditions
     let condition_tree = parse_conditions(query)?;
+    condition_tree.iter();
+    todo!("finished iteration of condition tree");
 
     // parse return values
     if query.trim_left_str(RETURN_STR).is_none() {
@@ -129,12 +131,12 @@ fn parse_node(query: &mut Query) -> Result<MatchObject, ParseMatchError> {
     let (id_name, type_name) = parse_rel_name_type(query, MATCH_NODE_END.to_string().as_str())?;
     Ok(MatchObject::new(
         id_name.to_string(),
-        type_name.to_string(), 
+        type_name.to_string(),
         IdentifierData::Relationship {
             start: None,
             end: None,
             direction: RelationshipDirection::Ingoing,
-        }
+        },
     ))
 }
 
@@ -171,8 +173,8 @@ fn parse_ingoing_rel(pattern: &mut Query) -> Result<MatchObject, ParseMatchError
         s if s.starts_with(MATCH_NODE_START) => {
             // simple relationship: <-
             println!("simple ingoing rel");
-            let id_name = {pattern.generate_uuid()}.to_string();
-            let type_name = {pattern.generate_uuid()}.to_string();
+            let id_name = { pattern.generate_uuid() }.to_string();
+            let type_name = { pattern.generate_uuid() }.to_string();
             (id_name, type_name)
         }
         _ => {
@@ -185,7 +187,7 @@ fn parse_ingoing_rel(pattern: &mut Query) -> Result<MatchObject, ParseMatchError
 
     Ok(MatchObject::new(
         id_name,
-        type_name, 
+        type_name,
         IdentifierData::Relationship {
             start: None,
             end: None,

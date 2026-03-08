@@ -1,13 +1,14 @@
-mod s_expr;
 mod lexer;
-use crate::parser::expression_parser::{lexer::{Lexer, Token}, s_expr::S};
+mod s_expr;
+use crate::parser::expression_parser::{
+    lexer::{Lexer, Token},
+    s_expr::S,
+};
 
-
-fn expr (input: &str) -> S {
+fn expr(input: &str) -> S {
     let mut lexer = Lexer::new(input);
     expr_bp(&mut lexer, 0)
 }
-
 
 fn expr_bp(lexer: &mut Lexer, min_bp: u8) -> S {
     let mut lhs = match lexer.next() {
@@ -37,12 +38,11 @@ fn expr_bp(lexer: &mut Lexer, min_bp: u8) -> S {
                 break;
             }
             lexer.next();
-            lhs =  if op == '[' {
+            lhs = if op == '[' {
                 let rhs = expr_bp(lexer, 0);
                 assert_eq!(lexer.next(), Token::Op(']'));
                 S::Cons(op, vec![lhs, rhs])
-            } 
-            else{
+            } else {
                 S::Cons(op, vec![lhs])
             };
             continue;
@@ -64,15 +64,14 @@ fn expr_bp(lexer: &mut Lexer, min_bp: u8) -> S {
     lhs
 }
 
-
-fn prefix_binding_power (op: char) -> ((), u8) {
+fn prefix_binding_power(op: char) -> ((), u8) {
     match op {
         '+' | '-' => ((), 5),
         _ => panic!("bad op: {:?}", op),
     }
 }
 
-fn infix_binding_power (op: char) -> Option<(u8, u8)> {
+fn infix_binding_power(op: char) -> Option<(u8, u8)> {
     let res = match op {
         '+' | '-' => (1, 2),
         '*' | '/' => (3, 4),
@@ -82,9 +81,9 @@ fn infix_binding_power (op: char) -> Option<(u8, u8)> {
     Some(res)
 }
 
-fn postfix_binding_power (op: char) -> Option<(u8, ())> {
+fn postfix_binding_power(op: char) -> Option<(u8, ())> {
     match op {
         '!' => Some((7, ())),
-        _ => None
+        _ => None,
     }
 }
