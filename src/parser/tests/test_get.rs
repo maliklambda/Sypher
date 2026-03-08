@@ -12,6 +12,7 @@ fn test_get_node() {
     assert_eq!(get_root_qo(query), expected_qo);
 }
 
+#[test]
 fn test_get_node_fails() {
     let invalid_query = Query::from_str("GET NODE ");
     assert!(parse_query(invalid_query).is_err());
@@ -24,6 +25,7 @@ fn test_get_relationship() {
     assert_eq!(get_root_qo(query), expected_qo);
 }
 
+#[test]
 fn test_get_relationship_fails() {
     let invalid_query = Query::from_str("GET RELATIONSHIP ");
     assert!(parse_query(invalid_query).is_err());

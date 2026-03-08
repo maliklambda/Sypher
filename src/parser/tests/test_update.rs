@@ -20,7 +20,7 @@ use crate::parser::{
 #[test]
 fn test_update_node_fails() {
     let invalid_query = Query::from_str("UPDATE NODE 1234");
-    match parse_query(invalid_query) {
+    match parse_query(invalid_query.clone()) {
         Err(ParseQueryError { reason: r }) => {
             println!("{:?}", r);
             assert_eq!(

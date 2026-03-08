@@ -38,7 +38,7 @@ fn test_add_node_fails() {
 
     let invalid_query = Query::from_str("ADD NODE n1 TYPE PersonPROPERTIES name='Edos', age=20");
     // type_name = "PersonPROPERTIES" => "PROPERTIES" is missing after type_name
-    let res = parse_query(invalid_query);
+    let res = parse_query(invalid_query.clone());
     match res {
         Err(ParseQueryError {
             reason: ParseErrorReason::ParseKeyValuePairs(ParseKeyValueError { reason: r }),
@@ -71,7 +71,7 @@ fn test_add_relationship_fails() {
     assert!(parse_query(invalid_query).is_err());
 
     let invalid_query = Query::from_str("ADD RELATIONSHIP n1 PersonPROPERTIES name='Edos', age=20");
-    let res = parse_query(invalid_query);
+    let res = parse_query(invalid_query.clone());
     match res {
         Err(ParseQueryError { reason: r }) => {
             assert_eq!(r, ParseErrorReason::MissingIdentifier)

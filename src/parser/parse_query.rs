@@ -36,7 +36,7 @@ pub fn parse_query(mut query: Query) -> Result<QueryTree, ParseQueryError> {
     Ok(query_tree)
 }
 
-fn parse_single_query(query: &mut Query) -> Result<QueryObject, ParseQueryError> {
+pub fn parse_single_query(query: &mut Query) -> Result<QueryObject, ParseQueryError> {
     let operation = get_operation(query)?;
     let query_object: QueryObject = match operation {
         Operation::Add => QueryObject::Add(add::parse_add(query)?),

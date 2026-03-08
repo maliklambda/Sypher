@@ -28,7 +28,7 @@ fn test_remove_node() {
 #[test]
 fn test_remove_node_fails() {
     let invalid_query = Query::from_str("REMOVE NODE 1234 MODE WRONG");
-    let res = parse_query(invalid_query);
+    let res = parse_query(invalid_query.clone());
     match res {
         Err(ParseQueryError { reason: r }) => assert_eq!(r, ParseErrorReason::UnknownRemoveMode),
         _ => panic!("Expected query \"{invalid_query}\" to return an error, but it passed"),
@@ -46,7 +46,7 @@ fn test_remove_relationship() {
 #[test]
 fn test_remove_relationship_fails() {
     let invalid_query = Query::from_str("REMOVE RELATIONSHIP");
-    let res = parse_query(invalid_query);
+    let res = parse_query(invalid_query.clone());
     match res {
         Err(ParseQueryError { reason: r }) => assert_eq!(r, ParseErrorReason::InvalidObjectKind),
         _ => panic!("Expected query \"{invalid_query}\" to return an error, but it passed"),

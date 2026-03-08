@@ -1,19 +1,17 @@
 use std::collections::HashMap;
 
 use crate::parser::{
-    objects::{
+    errors::{ParseErrorReason, ParseKeyValueError, ParseKeyValueErrorReason, ParseQueryError}, objects::{
         QueryObject,
         parse_match::{MatchQO, ReturnValue},
-    },
-    query::Query,
-    tests::get_root_qo,
+    }, parse_query::{parse_query, parse_single_query}, query::Query, tests::get_root_qo
 };
 
 #[test]
 fn test_match_ingoing() {
-    // let expected_qo = QueryObject::Match(MatchQO{filters: vec![], match_objects:, return_values: ReturnValue});
-    // let query = Query::from_str("MATCH (p:Person) -[]-> (f:Food)");
-    // assert_eq!(get_root_qo(query), expected_qo);
+    let expected_qo = QueryObject::Match(MatchQO{filters: vec![], match_objects:, return_values: ReturnValue});
+    let query = Query::from_str("MATCH (p:Person) -[]-> (f:Food)");
+    assert_eq!(get_root_qo(query), expected_qo);
 }
 
 #[test]
@@ -23,7 +21,7 @@ fn test_match_fails() {
 
     let invalid_query = Query::from_str("ADD NODE n1 TYPE PersonPROPERTIES name='Edos', age=20");
     // type_name = "PersonPROPERTIES" => "PROPERTIES" is missing after type_name
-    let res = parse_query(invalid_query);
+    let res = parse_query(invalid_query.clone());
     match res {
         Err(ParseQueryError {
             reason: ParseErrorReason::ParseKeyValuePairs(ParseKeyValueError { reason: r }),
