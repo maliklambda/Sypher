@@ -156,7 +156,8 @@ In contrast, all internal nodes must have at least one subquery that needs to be
 Internally, the traversal has the following steps: 
 1. Start traversal from the trees root.
 2. Traverse the entire tree with breadth-first-search. Save references to all visited nodes in a vector v.
-3. Reverse v to get the correct order.
+3. Reverse v to get the correct order.<br><br>
+The [above example](#subquery-trees) will yield the vector <code>[subq3.1, subq2.3, subq2.2, subq2.1, subq1.2, subq1.1, root]</code>.
 
 ### String Replacement
 The tree stores the start and end index in the original (or root) query for each subquery. 
@@ -169,6 +170,33 @@ This includes the [operator](#operators) and data associated with it.
 
 ## Boolean Expression Trees (BET)
 Also called "Binary Expression Trees". 
+They are internal tree structures to represent the conditions of a [WHERE](#match) clause. 
+Each node in the BET holds a FilterCondition, an expression that evaluates to a boolean-value. 
+A condition is applied at runtime to the results of a [matched pattern](#match-description-and-pattern-matching). 
+Furthermore, a node optionally holds a reference to following nodes that are connected either through the <code>AND</code> or the <code>OR</code> operator.
+(Please note that negated conditions using <code>NOT</code> are currently in the works.)
+In the following, the child connected by <code>AND</code> is referred to as the left child.
+Conversely, the child connected by <code>OR</code> is called the right child.
+
+
+### BET Traversal
+A [BET](#boolean-expression-trees-bet) is traversed using a DFS-like algorithm (that also resembles inorder traversal of a binary tree).
+The algorithm looks for a node that satisfies the following two conditions:
+1. It has no child that is connected to it by <code>AND</code>.
+2. The node's condition evaluates to true.
+<br>
+If a node's condition evaluates to false, then the entire left subtree (and-connected) will be discarded, as the expression can never evaluate to true in that case (at least not through said subtree).
+However, the right subtree (or-connected) can still yield a true value that will result in a true expression.
+So the traversal, upon encountering a node with a false condition, will continue with the node's right (or-connected) subtree.
+
+
+
+
+
+
+
+
+
 
 
 
