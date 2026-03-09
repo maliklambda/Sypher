@@ -1,14 +1,13 @@
 use crate::{
-    parser::{
+    constants::keywords::supqueries::SUBQ_PATTERN, parser::{
         errors::{ParseErrorReason, ParseQueryError},
         objects::{ObjectKind, get::GetQO},
         query::Query,
         utils::get_object_kind,
-    },
-    types::{NodeID, RelationshipID},
+    }, types::{NodeID, RelationshipID}
 };
 
-pub fn parse_get<'a>(query: &mut Query) -> Result<GetQO, ParseQueryError> {
+pub fn parse_get(query: &mut Query) -> Result<GetQO, ParseQueryError> {
     println!("Parsing get: {query}");
     let object_kind = get_object_kind(query)?;
     let get_query_object = {
@@ -20,18 +19,22 @@ pub fn parse_get<'a>(query: &mut Query) -> Result<GetQO, ParseQueryError> {
     Ok(get_query_object)
 }
 
-fn parse_get_node<'a>(query: &mut Query) -> Result<NodeID, ParseQueryError> {
-    let id: NodeID = query
-        .to_end()
-        .parse()
-        .map_err(|err| ParseQueryError::new(ParseErrorReason::ParseID(err)))?;
-    Ok(id)
+fn parse_get_node(query: &mut Query) -> Result<NodeID, ParseQueryError> {
+    parse_get_id(query)
 }
 
-fn parse_get_relationship<'a>(query: &mut Query) -> Result<RelationshipID, ParseQueryError> {
-    let id: RelationshipID = query
-        .to_end()
-        .parse()
-        .map_err(|err| ParseQueryError::new(ParseErrorReason::ParseID(err)))?;
-    Ok(id)
+fn parse_get_relationship(query: &mut Query) -> Result<RelationshipID, ParseQueryError> {
+    parse_get_id(query)
+}
+
+fn parse_get_id(query: &mut Query) -> Result<RelationshipID, ParseQueryError> {
+    let end = query.to_end();
+    if !end.trim().starts_with(SUBQ_PATTERN) {
+        let id = end
+            .parse()
+            .map_err(|err| ParseQueryError::new(ParseErrorReason::ParseID(err)))?;
+        Ok(id)
+    } else {
+        todo!("Subquery as value");
+    }
 }
