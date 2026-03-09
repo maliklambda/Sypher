@@ -14,10 +14,10 @@ The basic idea is that queries define patterns that are then matched against the
 
 ### User Guide and Query Syntax
 Information on supported query syntax is provided in the [reference for syntax](https://github.com/maliklambda/Sypher/blob/master/docs/reference.md). 
-This doc also serves as a user guide to writing sypher queries.
+This doc also serves as a user guide to writing sypher queries. 
 
 ### Internal details 
-Internal details can be found [here]()
+Internal details and discussions on internal data structures can be found in the [internals reference](https://github.com/maliklambda/Sypher/blob/master/docs/internals.md).
 
 
 
