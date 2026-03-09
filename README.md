@@ -169,7 +169,7 @@ This includes the [operator](#operators) and data associated with it.
 
 
 ## Boolean Expression Trees (BET)
-Also called "Binary Expression Trees". 
+Also called "Binary Expression Trees" or simply "Condition Trees". 
 They are internal tree structures to represent the conditions of a [WHERE](#match) clause. 
 Each node in the BET holds a FilterCondition, an expression that evaluates to a boolean-value. 
 A condition is applied at runtime to the results of a [matched pattern](#match-description-and-pattern-matching). 
@@ -177,6 +177,29 @@ Furthermore, a node optionally holds a reference to following nodes that are con
 (Please note that negated conditions using <code>NOT</code> are currently in the works.)
 In the following, the child connected by <code>AND</code> is referred to as the left child.
 Conversely, the child connected by <code>OR</code> is called the right child.
+```mermaid
+graph TD
+    R[root] -->|and| C1[condition1]
+    R -->|or| C2[condition2]
+    C1 -->|and| C3[condition3]
+    C1 -->|or| C4[condition4]
+    C4 -->|or| C7[condition7]
+    C2 -->|and| C5[condition5]
+    C2 -->|or| C6[condition6]
+```
+Conditions are parsed sequentially. 
+This means that the expressions <code>WHERE A AND B OR C</code> and <code>WHERE A AND (B OR C)</code> are equivalent.
+Similarly, the expressions <code>WHERE A OR B AND C</code> and <code>WHERE A OR (B AND C)</code> are equivalent.
+
+For convenience, the root node is initially set to an empty node with a constant condition that will always evaluate to true. 
+However, this node is kept only temporarily and the empty root-node is removed from the tree before the runtime executes it. 
+The example above corresponds to the following <code>WHERE</code>-clause: 
+<code>
+WHERE ((condition1 OR condition4 OR condition7) AND condition3) OR (condition2 AND condition5) OR condition6
+</code>
+<br>
+It should be noted here that nested conditions using <code>connection_group</code> characters <code>(</code> and <code>)</code> is still in the works, as this requires a condition's child to either be an atomic condition or a BET itself to remove all ambiguity. 
+As of now, only atomic conditions, such as e.g. <code>WHERE condition1 AND condition2 OR condition3</code>, are supported.
 
 
 ### BET Traversal
