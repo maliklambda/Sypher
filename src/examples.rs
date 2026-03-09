@@ -16,7 +16,9 @@ macro_rules! define_constants {
 }
 
 define_constants![
-    MATCH_CONDITIONS_GROUPED = "MATCH (p:) <- (f:Food) WHERE (p.name = 'name' AND p.age = 23) OR p.age = 56 RETURN p.name, f.cuisine",
+    MATCH_CONDITIONS_COMPLEX = "MATCH (p:) <- (f:Food) WHERE p.name = 'Edos' AND p.age > 23 AND p.balance*2 >= 500.00 OR p.debt%2 -100 < -34.0 AND a=4 RETURN p.name, f.cuisine",
+    MATCH_CONDITIONS_GROUPED =
+        "MATCH (p:) <- (f:Food) WHERE (p.name = 'name' AND p.age = 23) RETURN p.name, f.cuisine",
     MATCH_CONDITIONS = "MATCH (p:) <- (f:Food) WHERE p.name = 'Edos' AND p.age > 23 AND p.balance >= 500.00 OR p.debt < -34.0 AND a=4 RETURN p.name, f.cuisine",
     MATCH_SIMPLE_INGOING =
         "MATCH (p:) <- (f:Food) WHERE p.name = 'some_name' RETURN p.name, f.cuisine",

@@ -27,8 +27,9 @@ pub fn parse_match(query: &mut Query) -> Result<MatchQO, ParseQueryError> {
 
     // parse conditions
     let condition_tree = parse_conditions(query)?;
-    condition_tree.iter();
-    todo!("finished iteration of condition tree");
+    for condition in condition_tree.iter() {
+        println!("current node: {:?}", condition);
+    }
 
     // parse return values
     if query.trim_left_str(RETURN_STR).is_none() {

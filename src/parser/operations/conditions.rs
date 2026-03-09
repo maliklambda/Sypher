@@ -26,41 +26,38 @@ use crate::{
 #[derive(Debug, Clone)]
 pub struct ConditionTree {
     root: NodePtr,
-
-    // variables for iterator trait
-    visited: Vec<NodePtr>,
 }
 
 impl ConditionTree {
     pub fn new(root: NodePtr) -> Self {
-        Self {
-            root,
-            visited: vec![],
-        }
+        Self { root }
     }
 
-    pub fn iter(&self) {
-        let stack = inorder_traverse(self.root.clone());
-        println!("stack after iteration: {:?}", stack);
+    pub fn iter(&self) -> ConditionTreeIterator {
+        let mut nodes = inorder_traverse(self.root.clone());
+        nodes.pop(); // pop root element with "always true" condition
+        ConditionTreeIterator::new(nodes)
     }
-
-    fn get_andmost_node(&self) -> NodePtr {
-        let mut cur = self.root.clone();
-        loop {
-            let next = { cur.borrow().and.clone() };
-            if next.is_none() {
-                break;
-            }
-            cur = next.unwrap();
-        }
-        cur
-    }
-
-
 }
 
-pub struct PreorderIter <'a>{
-    stack: Vec<&'a Node>
+pub struct ConditionTreeIterator {
+    nodes: Vec<Node>,
+    cur_idx: usize,
+}
+
+impl ConditionTreeIterator {
+    fn new(nodes: Vec<Node>) -> Self {
+        Self { nodes, cur_idx: 0 }
+    }
+}
+
+impl Iterator for ConditionTreeIterator {
+    type Item = Node;
+    fn next(&mut self) -> Option<Self::Item> {
+        let val = self.nodes.get(self.cur_idx).cloned();
+        self.cur_idx += 1;
+        val
+    }
 }
 
 fn inorder_traverse(tree: NodePtr) -> Vec<Node> {
@@ -69,24 +66,20 @@ fn inorder_traverse(tree: NodePtr) -> Vec<Node> {
     result
 }
 
-fn inorder(tree: Option<NodePtr>, result: &mut Vec<Node>) -> Option<bool> {
-    if tree.is_none() { return None } // Return None if we reach a None value
+fn inorder(tree: Option<NodePtr>, result: &mut Vec<Node>) -> Option<()> {
+    if tree.is_none() {
+        return None;
+    } // Return None if we reach a None value
 
     let current_tree = tree.unwrap();
     let current_value = current_tree.borrow().val.clone();
 
-    inorder(current_tree.to_owned().borrow().and.to_owned(),result);
+    inorder(current_tree.to_owned().borrow().and.to_owned(), result);
     result.push(current_value);
-    inorder(current_tree.to_owned().borrow().or.to_owned(),result);
+    inorder(current_tree.to_owned().borrow().or.to_owned(), result);
 
-    Some(true) // This return doesn't matter but to maintain same return Type, Rust Specific Impl
+    Some(())
 }
-
-
-
-
-
-
 
 impl Iterator for ConditionTree {
     type Item = NodePtr;
@@ -174,6 +167,9 @@ impl AtomNode {
 
 pub fn parse_conditions(query: &mut Query) -> Result<ConditionTree, ParseMatchError> {
     let mut mode = IterMode::Normal;
+
+    // root is a dummy node whose condition is always true
+    // This saves repetitive checks in iteration below
     let root = NodeWrapper::from_atom(AtomNode::new(FilterCondition::true_condition()));
     let mut s: Vec<NodePtr> = vec![Rc::clone(&root)];
     let mut connector_cur = Connector::And;
@@ -228,11 +224,13 @@ pub fn parse_conditions(query: &mut Query) -> Result<ConditionTree, ParseMatchEr
                         cond_cur.push(c);
                     }
                     CONDITION_GROUP_START => {
+                        todo!("handle grouped conditions, e.g. 'WHERE A AND (B OR (C AND D) AND E) AND F'");
                         level += 1;
                         println!("Incrementing condition level to {level}");
                     }
                     CONDITION_GROUP_END => {
                         if level <= 0 {
+                            println!("Unclode GE @ {idx}");
                             return Err(ParseMatchError::new(
                                 crate::parser::errors::ParseMatchErrorReason::ParseConditions {
                                     err: ParseConditionsErrorReason::UnclosedGroupEnd,
@@ -240,8 +238,8 @@ pub fn parse_conditions(query: &mut Query) -> Result<ConditionTree, ParseMatchEr
                                 query.current.to_string(),
                             ));
                         }
-                        s.pop();
                         level -= 1;
+                        println!("Found s = {:?}", s);
                         println!("Decrementing condition level to {level}");
                     }
                     _ => cond_cur.push(c),
@@ -272,16 +270,20 @@ pub fn parse_conditions(query: &mut Query) -> Result<ConditionTree, ParseMatchEr
         println!("char: {}", c);
     }
 
-    if let IterMode::Ended(n) = mode {
-        query.trim_n_left(n);
-    } else {
-        panic!(
-            "Expected iterMode to end with status 'Ended', got: {:?}",
-            mode
-        );
-    }
+    let n = {
+        if let IterMode::Ended(n) = mode {
+            query.trim_n_left(n);
+            n
+        } else {
+            panic!(
+                "Expected iterMode to end with status 'Ended', got: {:?}",
+                mode
+            );
+        }
+    };
 
     if level > 0 {
+        println!("Unclode GE @ {n}");
         return Err(ParseMatchError::new(
             crate::parser::errors::ParseMatchErrorReason::ParseConditions {
                 err: ParseConditionsErrorReason::UnclosedGroupEnd,

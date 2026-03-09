@@ -6,7 +6,7 @@ mod parser;
 mod types;
 
 fn main() {
-    let example_query = examples::MATCH_CONDITIONS;
+    let example_query = examples::MATCH_CONDITIONS_COMPLEX;
     let query = Query::from_str(example_query);
 
     match parse_query(query) {
