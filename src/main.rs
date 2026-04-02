@@ -6,7 +6,7 @@ mod parser;
 mod types;
 
 fn main() {
-    let example_query = examples::SUBQ;
+    let example_query = examples::ADD_TYPE;
     let query = Query::from_str(example_query);
 
     match parse_query(query) {

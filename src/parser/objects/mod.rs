@@ -1,5 +1,5 @@
 use crate::{
-    constants::keywords::{NODE_STR, RELATIONSHIP_STR},
+    constants::keywords::{CONSTRAINTS_STR, INDEX_STR, NODE_STR, PROPERTIES_STR, RELATIONSHIP_STR, TYPE_STR},
     parser::objects::{
         add::AddQO, get::GetQO, parse_match::MatchQO, remove::RemoveQO, update::UpdateQO,
     },
@@ -30,12 +30,20 @@ impl NodeTuple {
 pub enum ObjectKind {
     Node,
     Relationship,
+    Type,
+    Index,
+    Properties,
+    Constraints,
 }
 
 impl ObjectKind {
     const STRINGS: &'static [(&'static str, Self)] = &[
         (NODE_STR, ObjectKind::Node),
         (RELATIONSHIP_STR, ObjectKind::Relationship),
+        (TYPE_STR, ObjectKind::Type),
+        (INDEX_STR, ObjectKind::Index),
+        (PROPERTIES_STR, ObjectKind::Type),
+        (CONSTRAINTS_STR, ObjectKind::Type),
     ];
 
     pub fn from_str(s: &str) -> Option<ObjectKind> {
@@ -53,6 +61,7 @@ pub mod add {
     pub enum AddQO {
         Node(AddNodeQO),
         Relationship(AddRelationshipQO),
+        Type(AddTypeQO),
         Index(),
         Properties(),
         Constraint(),
@@ -63,6 +72,12 @@ pub mod add {
         pub identifier: String,
         pub type_name: String,
         pub properties: HashMap<String, String>,
+    }
+
+
+    #[derive(Debug, PartialEq, Clone)]
+    pub struct AddTypeQO {
+        pub type_name: String,
     }
 
     #[derive(Debug, PartialEq, Clone)]

@@ -53,7 +53,7 @@ pub type ErrorSection = (usize, usize);
 pub enum ParseErrorReason {
     // Invalid
     InvalidKeyword(String),
-    InvalidObjectKind,
+    InvalidObjectKind(String),
     InvalidUpdateOperation,
 
     // Missing
@@ -73,7 +73,7 @@ pub enum ParseErrorReason {
     // Other
     UnknownRemoveMode,
     TooLongIdentifier { got: usize, max_len: usize },
-    Other,
+    Other (String),
     Default,
 }
 
@@ -85,8 +85,8 @@ impl std::fmt::Display for ParseErrorReason {
                 ParseErrorReason::InvalidKeyword(invalid_kw) => {
                     &format!("Invalid key word: {invalid_kw}")
                 }
-                ParseErrorReason::InvalidObjectKind => {
-                    "Invalid object kind. Valid object kinds are 'Node' and 'Relationship'"
+                ParseErrorReason::InvalidObjectKind(invalid_obj) => {
+                    &format!("Invalid object kind '{invalid_obj}'. Valid object kinds are 'Node' and 'Relationship'")
                 }
                 ParseErrorReason::InvalidUpdateOperation => {
                     "Invalid Update operation. Valid update operations are 'ADD', 'SET' and 'REMOVE'."
@@ -119,7 +119,7 @@ impl std::fmt::Display for ParseErrorReason {
                 ParseErrorReason::TooLongIdentifier { got, max_len } => {
                     &format!("Identifier is too long. Max length: {max_len}, got {got}")
                 }
-                ParseErrorReason::Other => "Other",
+                ParseErrorReason::Other (err_msg) => &format!("Generic error: {err_msg}"),
                 ParseErrorReason::Default => "Default",
             }
         };

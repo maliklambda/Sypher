@@ -3,6 +3,8 @@ pub mod keywords {
     pub const RELATIONSHIP_STR: &str = "RELATIONSHIP";
     pub const TYPE_STR: &str = "TYPE";
     pub const PROPERTIES_STR: &str = "PROPERTIES";
+    pub const CONSTRAINTS_STR: &str = "CONSTRAINTS";
+    pub const INDEX_STR: &str = "INDEX";
 
     pub mod add {
         pub const FROM_STR: &str = "FROM";

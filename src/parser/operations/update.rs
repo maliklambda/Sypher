@@ -24,6 +24,7 @@ pub fn parse_update<'a>(query: &mut Query) -> Result<UpdateQO, ParseQueryError> 
         match get_object_kind(query)? {
             ObjectKind::Node => UpdateQO::Node(parse_update_node(query)?),
             ObjectKind::Relationship => UpdateQO::Relationship(parse_update_relationship(query)?),
+            _ => todo!("Handle all object kinds")
         }
     };
     Ok(update_query_object)

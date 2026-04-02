@@ -14,6 +14,7 @@ pub fn parse_get(query: &mut Query) -> Result<GetQO, ParseQueryError> {
         match object_kind {
             ObjectKind::Node => GetQO::Node(parse_get_node(query)?),
             ObjectKind::Relationship => GetQO::Relationship(parse_get_relationship(query)?),
+            _ => todo!("Handle all object kinds")
         }
     };
     Ok(get_query_object)

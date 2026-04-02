@@ -37,4 +37,5 @@ define_constants![
     REMOVE_NODE = "REMOVE NODE 12345 MODE CASCADE",
     ADD_REL = "ADD RELATIONSHIP r1 TYPE LOVES FROM 893641 TO 324218436 PROPERTIES since = 2012, reason = 'natural'",
     ADD_NODE = "ADD NODE n1 TYPE Person PROPERTIES name = 'Malik', age = 20",
+    ADD_TYPE = "ADD TYPE Person",
 ];

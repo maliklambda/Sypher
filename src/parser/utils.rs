@@ -174,9 +174,9 @@ pub fn get_object_kind(query: &mut Query) -> Result<ObjectKind, ParseQueryError>
     let (object_kind_str, query_rest) = query
         .current
         .split_once(SPACE)
-        .ok_or(ParseQueryError::new(ParseErrorReason::InvalidObjectKind))?;
+        .ok_or(ParseQueryError::new(ParseErrorReason::InvalidObjectKind(String::from("No object kind"))))?;
     let object_kind = ObjectKind::from_str(object_kind_str)
-        .ok_or(ParseQueryError::new(ParseErrorReason::InvalidObjectKind))?;
+        .ok_or(ParseQueryError::new(ParseErrorReason::InvalidObjectKind(object_kind_str.to_string())))?;
     query.current = query_rest;
     query.offset += object_kind_str.len() + SPACE_LEN;
     Ok(object_kind)

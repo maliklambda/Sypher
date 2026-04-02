@@ -17,7 +17,7 @@ pub fn parse_remove<'a>(query: &mut Query) -> Result<RemoveQO, ParseQueryError> 
         match get_object_kind(query)? {
             ObjectKind::Node => RemoveQO::Node(parse_remove_node(query)?),
             ObjectKind::Relationship => RemoveQO::Relationship(parse_remove_relationship(query)?),
-            // _ => todo!("Parse remove of other objects"),
+            _ => todo!("Parse remove of other objects"),
         }
     };
     Ok(remove_query_object)
