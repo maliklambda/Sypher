@@ -205,12 +205,14 @@ fn parse_outgoing_rel(pattern: &mut Query) -> Result<MatchObject, ParseMatchErro
     pattern.trim_left_char(MATCH_REL_TAIL).unwrap();
 
     // simple relationship: "->"
-    if pattern.trim_left_char(MATCH_REL_HEAD).is_some() {
-        todo!("simple outgoing rel");
-    }
-    let (id_name, type_name) = parse_rel_name_type(pattern, MATCH_REL_DIRECTION_RIGHT)?;
-    let id_name = id_name.replace(MATCH_REL_START, "");
-    let type_name = type_name.replace(MATCH_REL_END, "");
+    let (id_name, type_name) = if pattern.trim_left_char(MATCH_REL_HEAD).is_some() {
+        ("*".to_string(), "*".to_string())
+    } else {
+        let (id_name, type_name) = parse_rel_name_type(pattern, MATCH_REL_DIRECTION_RIGHT)?;
+        let id_name = id_name.replace(MATCH_REL_START, "");
+        let type_name = type_name.replace(MATCH_REL_END, "");
+        (id_name, type_name)
+    };
 
     println!("Pattern after parsing outgoing rels: {pattern}");
     Ok(MatchObject::new(
