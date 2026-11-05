@@ -1,7 +1,5 @@
 <p align="center">
-
-![Logo](static/logo.png)
-
+  <img src="static/logo.png" alt="Logo" width="300">
 </p>
 
 # Sypher
