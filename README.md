@@ -1,6 +1,6 @@
 <p align="center">
 
-![Logo](images/logo.png)
+![Logo](static/logo.png)
 
 </p>
 
