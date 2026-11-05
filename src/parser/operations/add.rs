@@ -1,15 +1,18 @@
-use crate::{constants::special_chars::SPACE, parser::{
-    errors::{ParseErrorReason, ParseQueryError},
-    objects::{
-        NodeTuple, ObjectKind,
-        add::{AddNodeQO, AddQO, AddRelationshipQO, AddTypeQO},
+use crate::{
+    constants::special_chars::SPACE,
+    parser::{
+        errors::{ParseErrorReason, ParseQueryError},
+        objects::{
+            NodeTuple, ObjectKind,
+            add::{AddNodeQO, AddQO, AddRelationshipQO, AddTypeQO},
+        },
+        query::Query,
+        utils::{
+            get_identifier, get_nodes_for_relationship, get_object_kind, get_type_name,
+            parse_properties,
+        },
     },
-    query::Query,
-    utils::{
-        get_identifier, get_nodes_for_relationship, get_object_kind, get_type_name,
-        parse_properties,
-    },
-}};
+};
 
 pub fn parse_add<'a>(query: &'a mut Query) -> Result<AddQO, ParseQueryError> {
     println!("Parsing add: {query}");
@@ -85,15 +88,17 @@ fn parse_add_relationship(query: &mut Query) -> Result<AddRelationshipQO, ParseQ
     })
 }
 
-
-
 fn parse_add_type(query: &mut Query) -> Result<AddTypeQO, ParseQueryError> {
     let type_name = query.to_end();
-    if type_name.is_empty(){
+    if type_name.is_empty() {
         Err(ParseQueryError::new(ParseErrorReason::MissingTypeName))
     } else if type_name.contains(SPACE) {
-        Err(ParseQueryError::new(ParseErrorReason::Other(format!("Expected an atomic value. Got '{type_name}' which contains spaces."))))
+        Err(ParseQueryError::new(ParseErrorReason::Other(format!(
+            "Expected an atomic value. Got '{type_name}' which contains spaces."
+        ))))
     } else {
-        Ok(AddTypeQO { type_name: type_name.to_string() })
+        Ok(AddTypeQO {
+            type_name: type_name.to_string(),
+        })
     }
 }

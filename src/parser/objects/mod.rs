@@ -1,5 +1,7 @@
 use crate::{
-    constants::keywords::{CONSTRAINTS_STR, INDEX_STR, NODE_STR, PROPERTIES_STR, RELATIONSHIP_STR, TYPE_STR},
+    constants::keywords::{
+        CONSTRAINTS_STR, INDEX_STR, NODE_STR, PROPERTIES_STR, RELATIONSHIP_STR, TYPE_STR,
+    },
     parser::objects::{
         add::AddQO, get::GetQO, parse_match::MatchQO, remove::RemoveQO, update::UpdateQO,
     },
@@ -73,7 +75,6 @@ pub mod add {
         pub type_name: String,
         pub properties: HashMap<String, String>,
     }
-
 
     #[derive(Debug, PartialEq, Clone)]
     pub struct AddTypeQO {

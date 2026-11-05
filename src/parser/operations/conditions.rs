@@ -224,7 +224,9 @@ pub fn parse_conditions(query: &mut Query) -> Result<ConditionTree, ParseMatchEr
                         cond_cur.push(c);
                     }
                     CONDITION_GROUP_START => {
-                        todo!("handle grouped conditions, e.g. 'WHERE A AND (B OR (C AND D) AND E) AND F'");
+                        todo!(
+                            "handle grouped conditions, e.g. 'WHERE A AND (B OR (C AND D) AND E) AND F'"
+                        );
                         level += 1;
                         println!("Incrementing condition level to {level}");
                     }

@@ -1,10 +1,12 @@
 use crate::{
-    constants::keywords::supqueries::SUBQ_PATTERN, parser::{
+    constants::keywords::supqueries::SUBQ_PATTERN,
+    parser::{
         errors::{ParseErrorReason, ParseQueryError},
         objects::{ObjectKind, get::GetQO},
         query::Query,
         utils::get_object_kind,
-    }, types::{NodeID, RelationshipID}
+    },
+    types::{NodeID, RelationshipID},
 };
 
 pub fn parse_get(query: &mut Query) -> Result<GetQO, ParseQueryError> {
@@ -14,7 +16,7 @@ pub fn parse_get(query: &mut Query) -> Result<GetQO, ParseQueryError> {
         match object_kind {
             ObjectKind::Node => GetQO::Node(parse_get_node(query)?),
             ObjectKind::Relationship => GetQO::Relationship(parse_get_relationship(query)?),
-            _ => todo!("Handle all object kinds")
+            _ => todo!("Handle all object kinds"),
         }
     };
     Ok(get_query_object)

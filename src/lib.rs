@@ -1,5 +1,4 @@
-pub mod parser;
-pub mod examples;
 mod constants;
+pub mod examples;
+pub mod parser;
 mod types;
-
