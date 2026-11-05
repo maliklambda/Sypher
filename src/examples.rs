@@ -24,7 +24,7 @@ define_constants![
         "MATCH (p:) <- (f:Food) WHERE p.name = 'some_name' RETURN p.name, f.cuisine",
     MATCH_SIMPLE_OUTGOING =
         "MATCH (p:Person) -> (f:Food) WHERE p.name = 'some_name' RETURN p.name, f.cuisine",
-    MATCH_INGOING = "MATCH (food:Food) <-[r:LIKES]- (person:Person) WHERE person.name = 'Edos' RETURN person.age, foods.name",
+    MATCH_INGOING = "MATCH (food:Food) <-[r:LIKES]- (person:Person) WHERE person.name = 'Edos' RETURN person.age, food.name",
     MATCH_OUTGOING = "MATCH (person:Person) -[r:LIKES]-> (food:Food) WHERE person.name = 'Edos' RETURN food.name",
     SUBQ = "GET NODE SUBQ{GET RELATIONSHIP 234}",
     SUBQ_RECURSIVE = "MATCH (person:Person) -[r:LIKES]-> (food:Food) WHERE person.name = SUBQ{GET NODE 1234}.name RETURN person.name",
