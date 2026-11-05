@@ -1,3 +1,6 @@
+<p align="center">
+  <img src="static/logo.png" width="300" height="230">
+</p>
 # Sypher
 
 A query language for directed property graph databases with a focus on expressiveness and simplicity.
